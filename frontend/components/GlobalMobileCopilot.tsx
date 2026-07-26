@@ -11,8 +11,10 @@ export default function GlobalMobileCopilot() {
   const [showMobileCopilot, setShowMobileCopilot] = useState(false);
   const pathname = usePathname();
 
-  // Optionally hide on the workspace page if it has its own copilot tab, but 
-  // global usually means everywhere. We will render it everywhere.
+  // Hide copilot on login and sign-up pages
+  if (pathname === '/login' || pathname === '/signup') {
+    return null;
+  }
 
   return (
     <>

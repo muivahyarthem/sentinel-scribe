@@ -199,8 +199,8 @@ export default function DashboardPage() {
           {/* Main Left Column (KPIs + Lower Dashboard) */}
           <div className="flex-1 flex flex-col min-w-0">
             
-            {/* KPI Hero Section (Window Height) */}
-            <div className="min-h-[calc(100vh-70px)] flex flex-col">
+            {/* KPI Hero Section */}
+            <div className="flex flex-col">
               {/* Page Header */}
               <motion.div
                 className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 flex-shrink-0"
@@ -423,8 +423,8 @@ function KPICard({ label, value, trend, trendUp, suffix, urgent, icon: Icon }: {
           </Badge>
         </div>
         <div className="flex flex-col justify-center flex-grow py-2">
-          <CardTitle className={`text-6xl sm:text-7xl lg:text-[5.5rem] leading-none font-black tracking-tighter ${urgent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
-            {value.toLocaleString()}<span className="text-4xl sm:text-5xl lg:text-6xl font-bold opacity-60 ml-2">{suffix ?? ''}</span>
+          <CardTitle className={`text-4xl sm:text-5xl lg:text-6xl leading-none font-black tracking-tighter ${urgent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
+            {value.toLocaleString()}<span className="text-2xl sm:text-3xl lg:text-4xl font-bold opacity-60 ml-2">{suffix ?? ''}</span>
           </CardTitle>
           <CardDescription className="text-base sm:text-lg lg:text-xl font-semibold text-slate-600 dark:text-slate-400 mt-3">{label}</CardDescription>
         </div>
@@ -514,7 +514,7 @@ function KPISkeleton() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 flex-shrink-0">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="animate-pulse bg-slate-200/50 dark:bg-slate-800/50 h-[160px] rounded-[16px]" />
+        <div key={i} className="animate-pulse bg-slate-200/50 dark:bg-slate-800/50 h-[140px] rounded-[16px]" />
       ))}
     </div>
   );

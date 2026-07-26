@@ -69,18 +69,36 @@ export default function CopilotPanel({ patientId, consultationId, triageResult, 
     }
   }, [messages]);
 
+  const lastTriageResultStr = useRef<string | null>(null);
+
   useEffect(() => {
     if (context === 'workspace' && consultationId && triageResult) {
-      if (messages.length === 0 || messages[0].content.indexOf('Analysis complete') === -1) {
+      const currentStr = JSON.stringify(triageResult);
+      
+      // If the triage result has changed (e.g., user re-ran the consultation script)
+      if (lastTriageResultStr.current !== null && lastTriageResultStr.current !== currentStr) {
+        lastTriageResultStr.current = currentStr;
         const priority = triageResult.priority;
         const confidence = Math.round((triageResult.confidence ?? 0) * 100);
         setMessages([{
           role: 'assistant',
-          content: `Analysis complete. **${priority === 'P1' ? '🚨 P1 Emergency' : priority === 'P2' ? '⚠️ P2 Urgent' : '🟢 P3 Non-Urgent'}** 🎯 ${confidence}% confidence.\n\nI've reviewed the consultation transcript, extracted symptoms, and generated SOAP notes. How can I assist with this case?`,
+          content: `Update complete. **${priority === 'P1' ? '🚨 P1 Emergency' : priority === 'P2' ? '⚠️ P2 Urgent' : '🟢 P3 Non-Urgent'}** 🎯 ${confidence}% confidence.\n\nI've reviewed the newly generated context and updated my memory. How can I assist with this updated case?`,
         }]);
+      } 
+      // If it's the first time setting it
+      else if (lastTriageResultStr.current === null) {
+        lastTriageResultStr.current = currentStr;
+        if (messages.length === 0 || messages[0].content.indexOf('Analysis complete') === -1) {
+          const priority = triageResult.priority;
+          const confidence = Math.round((triageResult.confidence ?? 0) * 100);
+          setMessages([{
+            role: 'assistant',
+            content: `Analysis complete. **${priority === 'P1' ? '🚨 P1 Emergency' : priority === 'P2' ? '⚠️ P2 Urgent' : '🟢 P3 Non-Urgent'}** 🎯 ${confidence}% confidence.\n\nI've reviewed the consultation transcript, extracted symptoms, and generated SOAP notes. How can I assist with this case?`,
+          }]);
+        }
       }
     }
-  }, [consultationId, triageResult, context]);
+  }, [consultationId, triageResult, context, messages]);
 
   const sendMessage = async (text?: string) => {
     const msg = (text ?? input).trim();
