@@ -194,7 +194,7 @@ export default function DashboardPage() {
       <Navbar />
 
       <main className="flex-1 w-full max-w-[1920px] mx-auto px-4 md:px-6">
-        <div className="flex flex-col xl:flex-row gap-5 xl:gap-6 pt-4 pb-12">
+        <div className="flex flex-col xl:flex-row gap-3 xl:gap-4 pt-2 pb-4">
           
           {/* Main Left Column (KPIs + Lower Dashboard) */}
           <div className="flex-1 flex flex-col min-w-0">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
             <div className="flex flex-col">
               {/* Page Header */}
               <motion.div
-                className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-6 flex-shrink-0"
+                className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-3 flex-shrink-0"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                   variants={stagger}
                   initial="hidden"
                   animate="show"
-                  className="grid grid-cols-2 lg:grid-cols-3 gap-5 flex-1 min-h-0 pb-4"
+                  className="grid grid-cols-2 lg:grid-cols-3 gap-3 flex-1 min-h-0 pb-2"
                 >
                   {kpis.map((kpi) => (
                     <motion.div key={kpi.label} variants={fadeUp} className="h-full">
@@ -244,11 +244,11 @@ export default function DashboardPage() {
             </div>
 
             {/* Lower Dashboard Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mt-3">
               
               {/* Table & Triage */}
               <motion.div
-                className="lg:col-span-2 space-y-5 flex flex-col"
+                className="lg:col-span-2 space-y-3 flex flex-col"
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -338,7 +338,7 @@ export default function DashboardPage() {
 
               {/* Sidebar (Feed) */}
               <motion.div
-                className="lg:col-span-1 space-y-5"
+                className="lg:col-span-1 space-y-3"
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -413,27 +413,27 @@ function KPICard({ label, value, trend, trendUp, suffix, urgent, icon: Icon }: {
       
       {urgent && <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-500 to-rose-500" />}
       
-      <CardHeader className="p-6 sm:p-8 pb-0 sm:pb-0 relative z-10 flex-grow flex flex-col">
-        <div className="flex items-start justify-between mb-4">
-          <div className={`p-3 rounded-xl shadow-sm ${urgent ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'}`}>
-            <Icon size={24} strokeWidth={2.5} />
+      <CardHeader className="p-4 sm:p-5 pb-0 sm:pb-0 relative z-10 flex-grow flex flex-col">
+        <div className="flex items-start justify-between mb-2">
+          <div className={`p-2 rounded-xl shadow-sm ${urgent ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' : 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'}`}>
+            <Icon size={18} strokeWidth={2.5} />
           </div>
-          <Badge variant={urgent ? 'destructive' : 'outline'} className={`font-bold text-sm px-3 py-1 uppercase tracking-wider shadow-none ${!urgent ? 'border-blue-200 bg-white text-blue-600 dark:border-blue-800 dark:bg-slate-800 dark:text-blue-400' : ''}`}>
+          <Badge variant={urgent ? 'destructive' : 'outline'} className={`font-bold text-[10px] px-2 py-0.5 uppercase tracking-wider shadow-none ${!urgent ? 'border-blue-200 bg-white text-blue-600 dark:border-blue-800 dark:bg-slate-800 dark:text-blue-400' : ''}`}>
             {urgent ? 'Alert' : 'Live'}
           </Badge>
         </div>
-        <div className="flex flex-col justify-center flex-grow py-2">
-          <CardTitle className={`text-4xl sm:text-5xl lg:text-6xl leading-none font-black tracking-tighter ${urgent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
-            {value.toLocaleString()}<span className="text-2xl sm:text-3xl lg:text-4xl font-bold opacity-60 ml-2">{suffix ?? ''}</span>
+        <div className="flex flex-col justify-center flex-grow py-1">
+          <CardTitle className={`text-3xl sm:text-4xl lg:text-5xl leading-none font-black tracking-tighter ${urgent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
+            {value.toLocaleString()}<span className="text-xl sm:text-2xl lg:text-3xl font-bold opacity-60 ml-1">{suffix ?? ''}</span>
           </CardTitle>
-          <CardDescription className="text-base sm:text-lg lg:text-xl font-semibold text-slate-600 dark:text-slate-400 mt-3">{label}</CardDescription>
+          <CardDescription className="text-xs sm:text-sm lg:text-base font-semibold text-slate-600 dark:text-slate-400 mt-1">{label}</CardDescription>
         </div>
       </CardHeader>
       
-      <CardContent className="p-6 sm:p-8 pt-4 sm:pt-6 mt-auto relative z-10">
-        <Separator className="mb-4 opacity-50 dark:opacity-20" />
-        <div className={`flex items-center gap-2 text-sm sm:text-base font-bold uppercase tracking-wider ${trendUp ? 'text-slate-600 dark:text-slate-400' : 'text-slate-500 dark:text-slate-500'}`}>
-          {trendUp ? <ArrowUpRight className="h-5 w-5 stroke-[3]" /> : <ArrowDownRight className="h-5 w-5 stroke-[3]" />}
+      <CardContent className="p-4 sm:p-5 pt-2 sm:pt-3 mt-auto relative z-10">
+        <Separator className="mb-2 opacity-50 dark:opacity-20" />
+        <div className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold uppercase tracking-wider ${trendUp ? 'text-slate-600 dark:text-slate-400' : 'text-slate-500 dark:text-slate-500'}`}>
+          {trendUp ? <ArrowUpRight className="h-4 w-4 stroke-[3]" /> : <ArrowDownRight className="h-4 w-4 stroke-[3]" />}
           {trend}
         </div>
       </CardContent>
@@ -512,9 +512,9 @@ function EmptyConsultations() {
 
 function KPISkeleton() {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 gap-5 flex-shrink-0">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 flex-shrink-0">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="animate-pulse bg-slate-200/50 dark:bg-slate-800/50 h-[140px] rounded-[16px]" />
+        <div key={i} className="animate-pulse bg-slate-200/50 dark:bg-slate-800/50 h-[110px] rounded-[16px]" />
       ))}
     </div>
   );
