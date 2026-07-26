@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sentinel Scribe Frontend Interface
 
-## Getting Started
+The frontend application for Sentinel Scribe serves as the primary interface for clinical staff, physicians, and administrative users. It is built to provide a seamless, highly responsive, and accessible user experience for managing patient triage, reviewing AI-generated SOAP documentation, and interacting with the AI Doctor Copilot.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Overview
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Designed with modern web architecture principles, this application prioritizes performance and clinical utility. The interface is meticulously crafted to surface critical patient information, such as emergency red flags and priority levels, with zero friction. The integration of a natural language copilot interface allows clinicians to query patient histories dynamically within the same operational context.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Technology Stack
 
-## Learn More
+The application leverages a cutting-edge React ecosystem to ensure maintainability, type safety, and optimal rendering performance.
 
-To learn more about Next.js, take a look at the following resources:
+- **Framework:** Next.js (version 16)
+- **UI Library:** React (version 19)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS (version 4)
+- **Component Primitives:** Radix UI and Shadcn
+- **Animations:** Framer Motion
+- **Icons:** Lucide React
+- **Data Fetching:** Axios
+- **Content Rendering:** React Markdown for parsing AI responses
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Design System and UI Architecture
 
-## Deploy on Vercel
+The user interface strictly adheres to a cohesive design system aimed at reducing cognitive load for medical professionals. 
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Component-Driven Design:** The application utilizes Radix UI primitives wrapped in customized Shadcn components, ensuring accessibility (WAI-ARIA compliance) without sacrificing design flexibility.
+- **Dynamic Feedback:** Subtle animations powered by Framer Motion provide tactile feedback during asynchronous operations, such as generating SOAP notes or processing copilot queries.
+- **Responsive Layout:** Tailwind CSS is employed to guarantee that the application scales fluidly from desktop administrative terminals to mobile tablets used during clinical rounds.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+### Development Setup
+
+To run the frontend environment locally, follow the steps outlined below.
+
+1. **Environment Configuration:**
+   Copy the example environment variables file and update it with your local or staging backend endpoints.
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+2. **Install Dependencies:**
+   Ensure you are using a compatible Node.js environment, then install the required packages.
+   ```bash
+   npm install
+   ```
+
+3. **Start the Development Server:**
+   Launch the Next.js development server with Hot Module Replacement (HMR).
+   ```bash
+   npm run dev
+   ```
+   The application will be accessible at http://localhost:3000.
+
+---
+
+### Directory Structure
+
+The repository follows Next.js App Router conventions and feature-based modularity.
+
+- **app:** Contains the routing logic, page layouts, and core views.
+- **components:** Houses reusable, presentation-agnostic UI elements (e.g., buttons, dialogs, typography).
+- **lib:** Contains utility functions, Axios interceptors, and shared TypeScript interfaces.
+- **public:** Static assets including fonts and brand imagery.
+
+---
+
+### State Management and Data Fetching
+
+Data fetching is handled primarily through Axios, structured to seamlessly interface with the Sentinel Scribe FastAPI backend. The application manages local state via React hooks, optimizing re-renders and ensuring that real-time AI inferences (such as incoming copilot responses) are rendered efficiently without blocking the main thread.
