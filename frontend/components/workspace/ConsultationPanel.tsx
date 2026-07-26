@@ -37,7 +37,6 @@ export default function ConsultationPanel({ patientId, patientName, transcript, 
   const [feedbackGiven, setFeedbackGiven] = useState<'accurate' | 'inaccurate' | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  const [pipelineSteps, setPipelineSteps] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // Restore state from sessionStorage on mount
@@ -93,7 +92,6 @@ export default function ConsultationPanel({ patientId, patientName, transcript, 
     setConsultationId(null);
     setIsCompleted(false);
     setFeedbackGiven(null);
-    setPipelineSteps([]);
     setOpenSections(new Set(['transcript']));
     onTriageComplete(null, null);
   };
@@ -111,16 +109,8 @@ export default function ConsultationPanel({ patientId, patientName, transcript, 
   const handleAnalyze = async () => {
     if (!patientId || !transcript.trim()) return;
     setLoading(true);
-    setPipelineSteps([]);
     setResult(null);
     try {
-      const steps = ['Cleaning transcript…', 'Detecting red flags…', 'Extracting symptoms…', 'Querying Qdrant RAG…', 'Classifying triage…', 'Saving to memory…'];
-      let i = 0;
-      const interval = setInterval(() => {
-        if (i < steps.length) { setPipelineSteps(p => [...p, steps[i]]); i++; }
-        else clearInterval(interval);
-      }, 600);
-
       const conRes = await api.post('/consultations', {
         patient_id: patientId,
         transcript,
@@ -136,8 +126,6 @@ export default function ConsultationPanel({ patientId, patientName, transcript, 
         patient_id: patientId,
       });
 
-      clearInterval(interval);
-      setPipelineSteps(steps);
       setResult(triageRes.data);
       openAll();
       onTriageComplete(triageRes.data, cId);
@@ -155,7 +143,6 @@ export default function ConsultationPanel({ patientId, patientName, transcript, 
     setConsultationId(null);
     setIsCompleted(false);
     setFeedbackGiven(null);
-    setPipelineSteps([]);
     setOpenSections(new Set(['transcript']));
     onTriageComplete(null, null);
     sessionStorage.removeItem('ws_consultationId');
@@ -309,27 +296,22 @@ export default function ConsultationPanel({ patientId, patientName, transcript, 
                     <input ref={fileRef} type="file" accept=".txt,.doc,.docx" className="hidden" onChange={handleFile} />
                   </div>
 
-                  {/* Pipeline progress */}
+                  {/* Simple Loading Bar */}
                   {loading && (
-                    <div className="rounded-xl p-4 mb-6 bg-slate-50 border border-slate-200 dark:bg-slate-900/50 dark:border-slate-800 shadow-inner">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Loader2 size={14} className="animate-spin text-blue-600 dark:text-blue-400" />
-                        <span className="text-sm font-semibold text-blue-700 dark:text-blue-400">
-                          Running AI Pipeline…
+                    <div className="mb-6 flex flex-col gap-2.5">
+                      <div className="flex items-center justify-between px-1 text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                        <span className="flex items-center gap-2">
+                           <Loader2 size={13} className="animate-spin text-blue-500" />
+                           Analyzing Transcript
                         </span>
                       </div>
-                      <div className="space-y-2 pl-1">
-                        {pipelineSteps.map((step, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, x: -8 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-2 text-xs font-medium text-slate-600 dark:text-slate-400"
-                          >
-                            <CheckCircle size={13} className="text-emerald-500 flex-shrink-0" />
-                            {step}
-                          </motion.div>
-                        ))}
+                      <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800/60 rounded-full overflow-hidden relative shadow-inner">
+                        <motion.div 
+                          className="absolute top-0 bottom-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-500 rounded-full"
+                          initial={{ left: '-50%', width: '50%' }}
+                          animate={{ left: '100%', width: '50%' }}
+                          transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                        />
                       </div>
                     </div>
                   )}
