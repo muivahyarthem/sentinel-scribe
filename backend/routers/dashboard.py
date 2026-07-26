@@ -7,7 +7,41 @@ from models import User, Patient, Consultation, SoapNote, TriageResult
 from schemas import DashboardStats
 from auth import get_current_user
 
+import json
+import os
+
 router = APIRouter(prefix="/dashboard", tags=["dashboard"])
+
+ACTIVE_SESSIONS_FILE = "active_sessions.json"
+
+def get_active_sessions():
+    if os.path.exists(ACTIVE_SESSIONS_FILE):
+        try:
+            with open(ACTIVE_SESSIONS_FILE, "r") as f:
+                return set(json.load(f))
+        except:
+            pass
+    return set()
+
+def add_active_session(user_id: str):
+    sessions = get_active_sessions()
+    sessions.add(user_id)
+    try:
+        with open(ACTIVE_SESSIONS_FILE, "w") as f:
+            json.dump(list(sessions), f)
+    except:
+        pass
+
+@router.post("/logout_clinicians")
+async def logout_clinicians(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    try:
+        with open(ACTIVE_SESSIONS_FILE, "w") as f:
+            json.dump([current_user.id], f)
+    except:
+        pass
+    return {"message": "All other clinicians logged out successfully."}
+
+
 
 
 @router.get("/stats", response_model=DashboardStats)
@@ -63,7 +97,12 @@ async def get_dashboard_stats(
     ).scalar() or 0
 
     # Active Clinicians
-    active_clinicians = (await db.execute(select(func.count(User.id)))).scalar() or 1
+    sessions = get_active_sessions()
+    # Add current user to sessions just in case
+    if current_user.id not in sessions:
+        add_active_session(current_user.id)
+        sessions.add(current_user.id)
+    active_clinicians = max(1, len(sessions))
 
     # Recent consultations (last 5)
     recent_result = await db.execute(

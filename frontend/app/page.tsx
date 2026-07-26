@@ -11,7 +11,7 @@ import { DashboardStats, Consultation } from '@/lib/types';
 import { formatTimeAgo, getInitials, getAvatarColor } from '@/lib/utils';
 import {
   Activity, AlertTriangle, Stethoscope, ArrowUpRight, ArrowDownRight,
-  ArrowRight, CheckCircle, Clock, Users, Zap, Sparkles, X
+  ArrowRight, CheckCircle, Clock, Users, Zap, Sparkles, X, LogOut
 } from 'lucide-react';
 import CopilotPanel from '@/components/workspace/CopilotPanel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -74,6 +74,15 @@ export default function DashboardPage() {
       window.removeEventListener('profileUpdated', loadProfile);
     };
   }, [fetchStats, router]);
+
+  const handleLogoutClinicians = async () => {
+    try {
+      await api.post('/dashboard/logout_clinicians');
+      fetchStats(); // Immediately update the UI
+    } catch (e) {
+      console.error('Failed to logout clinicians', e);
+    }
+  };
 
   const feedActivities = useMemo(() => {
     if (!stats) return [];
@@ -186,6 +195,9 @@ export default function DashboardPage() {
       trend: 'Online and on duty',
       trendUp: true,
       icon: Stethoscope,
+      actionIcon: LogOut,
+      onAction: handleLogoutClinicians,
+      actionTooltip: "Log out other clinicians"
     },
   ] : [];
 
@@ -403,11 +415,11 @@ export default function DashboardPage() {
 }
 
 /* ── KPI Cards ──────────────────────────────────────────────────────────── */
-function KPICard({ label, value, trend, trendUp, suffix, urgent, icon: Icon }: {
-  label: string; value: number; trend: string; trendUp: boolean; suffix?: string; urgent?: boolean; icon: any;
+function KPICard({ label, value, trend, trendUp, suffix, urgent, icon: Icon, actionIcon: ActionIcon, onAction, actionTooltip }: {
+  label: string; value: number; trend: string; trendUp: boolean; suffix?: string; urgent?: boolean; icon: any; actionIcon?: any; onAction?: () => void; actionTooltip?: string;
 }) {
   return (
-    <Card className={`rounded-[20px] shadow-sm h-full flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-1 ${urgent ? 'border-red-200/50 bg-gradient-to-br from-red-50/50 to-white dark:from-red-950/20 dark:to-slate-900 dark:border-red-900/30' : 'border-slate-200/60 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 dark:border-slate-800/60'}`}>
+    <Card className={`group/card rounded-[20px] shadow-sm h-full flex flex-col justify-between relative overflow-hidden transition-all duration-200 hover:shadow-md hover:-translate-y-1 ${urgent ? 'border-red-200/50 bg-gradient-to-br from-red-50/50 to-white dark:from-red-950/20 dark:to-slate-900 dark:border-red-900/30' : 'border-slate-200/60 bg-gradient-to-br from-white to-slate-50/50 dark:from-slate-900 dark:to-slate-900/50 dark:border-slate-800/60'}`}>
       {/* Decorative background blur */}
       <div className={`absolute -right-10 -top-10 w-40 h-40 rounded-full opacity-10 blur-3xl ${urgent ? 'bg-red-500' : 'bg-slate-400'}`} />
       
@@ -423,8 +435,17 @@ function KPICard({ label, value, trend, trendUp, suffix, urgent, icon: Icon }: {
           </Badge>
         </div>
         <div className="flex flex-col justify-center flex-grow py-1">
-          <CardTitle className={`text-3xl sm:text-4xl lg:text-5xl leading-none font-black tracking-tighter ${urgent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
-            {value.toLocaleString()}<span className="text-xl sm:text-2xl lg:text-3xl font-bold opacity-60 ml-1">{suffix ?? ''}</span>
+          <CardTitle className={`text-3xl sm:text-4xl lg:text-5xl leading-none font-black tracking-tighter flex items-center justify-between ${urgent ? 'text-red-600 dark:text-red-400' : 'text-slate-800 dark:text-slate-200'}`}>
+            <div>{value.toLocaleString()}<span className="text-xl sm:text-2xl lg:text-3xl font-bold opacity-60 ml-1">{suffix ?? ''}</span></div>
+            {ActionIcon && onAction && (
+              <button 
+                onClick={onAction}
+                title={actionTooltip}
+                className="opacity-0 group-hover/card:opacity-100 transition-opacity p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-red-500"
+              >
+                <ActionIcon size={20} strokeWidth={2.5} />
+              </button>
+            )}
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm lg:text-base font-semibold text-slate-600 dark:text-slate-400 mt-1">{label}</CardDescription>
         </div>
