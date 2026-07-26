@@ -11,8 +11,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/signup", response_model=TokenResponse)
 async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
+    email = body.email.strip().lower()
     # Check if email exists
-    result = await db.execute(select(User).where(User.email == body.email))
+    result = await db.execute(select(User).where(User.email == email))
     if result.scalar_one_or_none():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -21,7 +22,7 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
     
     # Create user
     user = User(
-        email=body.email,
+        email=email,
         password_hash=hash_password(body.password),
         name=body.name,
         role=body.role,
@@ -40,7 +41,8 @@ async def signup(body: SignupRequest, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(User).where(User.email == body.email))
+    email = body.email.strip().lower()
+    result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
 
     if not user or not verify_password(body.password, user.password_hash):
