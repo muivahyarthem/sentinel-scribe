@@ -182,7 +182,7 @@ export default function DashboardPage() {
     },
     {
       label: 'Active Clinicians',
-      value: 1,
+      value: stats.active_clinicians || 1,
       trend: 'Online and on duty',
       trendUp: true,
       icon: Stethoscope,

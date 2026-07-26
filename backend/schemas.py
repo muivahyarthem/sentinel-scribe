@@ -196,5 +196,6 @@ class DashboardStats(BaseModel):
     total_patients: int
     triage_accuracy: float = 94.0
     pending_reviews: int = 0
+    active_clinicians: int = 1
     recent_consultations: List[ConsultationOut]
     recent_patients: List[PatientOut] = []

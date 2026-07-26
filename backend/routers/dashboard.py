@@ -62,6 +62,9 @@ async def get_dashboard_stats(
         )
     ).scalar() or 0
 
+    # Active Clinicians
+    active_clinicians = (await db.execute(select(func.count(User.id)))).scalar() or 1
+
     # Recent consultations (last 5)
     recent_result = await db.execute(
         select(Consultation)
@@ -93,6 +96,7 @@ async def get_dashboard_stats(
         total_patients=total_patients,
         triage_accuracy=triage_accuracy,
         pending_reviews=pending_reviews,
+        active_clinicians=active_clinicians,
         recent_consultations=recent,
         recent_patients=recent_patients,
     )

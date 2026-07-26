@@ -66,6 +66,7 @@ export interface DashboardStats {
   total_patients: number;
   triage_accuracy?: number;
   pending_reviews?: number;
+  active_clinicians?: number;
   recent_consultations: Consultation[];
   recent_patients: Patient[];
 }
