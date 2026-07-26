@@ -1,90 +1,107 @@
-# AI-Augmented Clinical Triage & Documentation System
+# Sentinel Scribe: AI-Augmented Clinical Triage, Documentation, and Doctor Copilot System
 
-> Hackathon MVP — AI-powered clinical triage, SOAP documentation, patient memory, and AI Doctor Copilot
-
----
-
-## 🚀 Quick Start (3 steps)
-
-### 1. Start infrastructure
-
-```bash
-docker-compose up -d
-```
-
-> Starts PostgreSQL on `:5432` and Qdrant on `:6333`
+Welcome to Sentinel Scribe, an intelligent, multi-agent platform designed to modernize the clinical workflow. Whether you are a healthcare professional seeking to reduce documentation overhead, or an engineer exploring modern AI architectures, this documentation provides a comprehensive overview of the project.
 
 ---
 
-### 2. Start backend
-
-```bash
-cd backend
-cp .env.example .env          # edit GOOGLE_API_KEY if you have one
-pip install -r requirements.txt
-python seed.py                 # seeds 10 patients + Qdrant
-python main.py                 # starts API on :8000
-```
-
-**Demo login:** `doctor@clinic.ai` / `demo1234`
+### Table of Contents
+- [Project Overview](#project-overview)
+- [Target Audience](#target-audience)
+- [System Benefits and Improvements](#system-benefits-and-improvements)
+- [System Workflow](#system-workflow)
+- [Key Features](#key-features)
+- [Architecture and Technology Stack](#architecture-and-technology-stack)
+- [System Endpoints](#system-endpoints)
+- [Graceful Fallback Mechanism](#graceful-fallback-mechanism)
 
 ---
 
-### 3. Start frontend
+### Project Overview
 
-```bash
-cd frontend
-cp .env.local.example .env.local
-npm run dev                    # starts on :3000
-```
+Sentinel Scribe is a comprehensive AI-powered application built to assist medical professionals by automating clinical triage, generating SOAP (Subjective, Objective, Assessment, and Plan) documentation, and acting as an interactive AI copilot. 
+
+It processes raw patient-doctor conversation transcripts to identify emergencies, extract symptoms, determine triage priority, and generate professional medical notes. This is powered by an advanced Multi-Agent AI system using Google ADK and Gemini models.
 
 ---
 
-## 🌐 URLs
+### Target Audience
 
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:8000 |
-| API Docs (Swagger) | http://localhost:8000/docs |
-| Qdrant Dashboard | http://localhost:6333/dashboard |
+- **Healthcare Providers (Doctors, Nurses):** Reduce time spent on paperwork and documentation, allowing more focus on direct patient care.
+- **Triage Staff:** Quickly and accurately prioritize patients based on symptom severity and clinical guidelines.
+- **Clinic Administrators:** Streamline patient flow, increase efficiency, and maintain standardized medical records.
+- **Software Developers and AI Engineers:** Explore practical implementations of Multi-Agent architectures, RAG (Retrieval-Augmented Generation), and Vector Databases in healthcare.
 
 ---
 
-## 🏗️ Architecture
+### System Benefits and Improvements
 
-```
-Transcript → TranscriptAgent (clean)
-           → RedFlagAgent (emergency detection)
-           → SymptomAgent (extract JSON)
-           → Qdrant (guideline RAG + patient memory)
-           → TriageAgent (P1/P2/P3 + reasoning)
-           → SOAPAgent (generate notes)
-           → PostgreSQL (persist all results)
-           → CopilotAgent (doctor Q&A)
-```
+- **Reduces Burnout:** Automates the creation of SOAP notes, saving hours of manual data entry per week.
+- **Enhances Patient Safety:** The dedicated RedFlagAgent instantly flags critical emergency symptoms that require immediate attention.
+- **Data-Driven Decisions:** Leverages Clinical Guideline RAG to ensure that triage decisions are backed by up-to-date medical standards.
+- **Context-Aware Assistance:** The CopilotAgent remembers patient history, acting as a virtual assistant to answer specific clinical questions.
+- **Standardization:** Ensures that all patient encounters are documented in a consistent, structured format across the clinic.
 
-## 🤖 AI Agents
+---
 
-| Agent | Framework | Purpose |
+### System Workflow
+
+The workflow is designed to bridge the gap between clinical usability and robust backend processing.
+
+#### The Medical Workflow (User Perspective)
+
+1. **Input:** A raw text transcript of the patient's consultation is submitted to the system.
+2. **Analysis:** The AI instantly analyzes the text, looking for critical red flags and extracting core symptoms.
+3. **Triage:** The system assigns a priority (P1 - Emergency, P2 - Urgent, P3 - Routine) based on guidelines.
+4. **Documentation:** A complete SOAP note is generated for the doctor to review and finalize.
+5. **Interaction:** The doctor can chat with the AI Copilot to ask specific questions regarding the patient's history.
+
+#### The Technical Workflow (System Perspective)
+
+The system operates on a linear pipeline orchestrated by seven specialized AI Agents:
+
+1. **TranscriptAgent:** Cleans, formats, and normalizes the raw conversation transcript.
+2. **RedFlagAgent:** Scans the cleaned transcript for immediate emergency indicators.
+3. **SymptomAgent:** Extracts symptoms and structures them into a clean JSON format.
+4. **RAG Step:** Queries Qdrant (Vector DB) to retrieve relevant clinical guidelines and past patient history.
+5. **TriageAgent:** Uses extracted data and RAG context to classify triage level (P1/P2/P3) and outputs clinical reasoning.
+6. **SOAPAgent:** Synthesizes all gathered information into standard SOAP format.
+7. **Storage:** All outputs, reasoning, and notes are securely persisted to a PostgreSQL database.
+8. **CopilotAgent:** Available asynchronously for Doctor Q&A based on the persisted patient context.
+
+---
+
+### Key Features
+
+- **Multi-Agent Orchestration:** A sequential pipeline of seven distinct AI agents handling specialized tasks seamlessly.
+- **Retrieval-Augmented Generation (RAG):** Deep integration with Qdrant for global clinical guidelines and individualized patient memory retrieval.
+- **Structured Output Generation:** AI responses are strictly structured (JSON) for seamless frontend integration and reliability.
+- **Complete Dashboard Interface:** A sleek, modern frontend built with React, TypeScript, and Tailwind CSS.
+- **Robust API Backend:** A highly scalable FastAPI backend handling async database operations.
+- **Mock Data Seeding:** Built-in seed scripts to quickly populate the database with mock patients and vector embeddings for testing.
+
+---
+
+### Architecture and Technology Stack
+
+- **Frontend:** Node.js, TypeScript, React, Tailwind CSS, Radix UI
+- **Backend:** Python, FastAPI, SQLAlchemy (async), Pydantic
+- **AI and Orchestration:** Google ADK (Agent Development Kit), Lyzr-style pipelines, Gemini 2.5 Flash
+- **Relational Database:** PostgreSQL (Structured records and transactional data)
+- **Vector Database:** Qdrant (Embeddings and RAG)
+
+---
+
+### System Endpoints
+
+| Service | Default URL | Description |
 |---|---|---|
-| TranscriptAgent | Google ADK | Clean raw transcripts |
-| RedFlagAgent | Google ADK | Detect emergency symptoms |
-| SymptomAgent | Google ADK | Extract structured symptom data |
-| TriageAgent | Google ADK | P1/P2/P3 classification with RAG |
-| SOAPAgent | Google ADK | Generate SOAP documentation |
-| CopilotAgent | Google ADK | Doctor Q&A with context |
-| ClinicalPipeline | Lyzr-style | Orchestrate 7-step pipeline |
+| Frontend Application | http://localhost:3000 | The main user interface for healthcare professionals. |
+| Backend API | http://localhost:8000 | The core backend service. |
+| API Documentation (Swagger) | http://localhost:8000/docs | Interactive API documentation. |
+| Qdrant Dashboard | http://localhost:6333/dashboard | Visual interface for managing the Vector DB. |
 
-## 📊 Stack
+---
 
-- **Frontend**: Node.js 14 + TypeScript + Tailwind + Radix UI
-- **Backend**: FastAPI + SQLAlchemy (async) + Pydantic
-- **Database**: PostgreSQL
-- **Vector DB**: Qdrant (patient memory + clinical guidelines RAG)
-- **AI**: Google ADK agents + Lyzr pipeline + Gemini 2.5 Flash
-- **Auth**: JWT (python-jose + bcrypt)
+### Graceful Fallback Mechanism
 
-## 🧪 Graceful Fallback
-
-The system works **without a Gemini API key** — all agents fall back to deterministic rule-based responses, so the demo always runs.
+The system is designed to maintain high availability. If the required Gemini API key is missing, invalid, or experiencing downtime, all AI agents gracefully fall back to deterministic, rule-based responses. This ensures that the user interface and core pipeline can always be operated and tested without interruption.
