@@ -19,6 +19,22 @@ async def copilot_chat(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    # 1. Attempt to resolve patient from message if patient_id is not provided
+    resolved_patient = None
+    asked_about_patient = any(word in body.message.lower() for word in ["patient", "history", "record", "mrn", "who"])
+    
+    if not body.patient_id:
+        patients_res = await db.execute(select(Patient).where(Patient.user_id == _.id))
+        all_patients = patients_res.scalars().all()
+        
+        msg_lower = body.message.lower()
+        for p in all_patients:
+            # Check if full name or MRN is in the message
+            if (p.name.lower() in msg_lower) or (p.mrn and p.mrn.lower() in msg_lower):
+                resolved_patient = p
+                body.patient_id = p.id
+                break
+
     # Build consultation context
     consultation_context = {}
     if body.consultation_id:
@@ -56,9 +72,16 @@ async def copilot_chat(
     # Retrieve patient memory and guidelines in parallel
     import asyncio
     patient_memory, guidelines = await asyncio.gather(
-        qdrant.search_patient_memory(body.patient_id, body.message, top_k=4),
+        qdrant.search_patient_memory(body.patient_id, body.message, top_k=4) if body.patient_id else asyncio.sleep(0, result=[]),
         qdrant.search_guidelines(body.message, top_k=2),
     )
+    
+    if resolved_patient:
+        # Inject basic patient details into memory
+        patient_memory.insert(0, {
+            "date": "Demographics", 
+            "text": f"Name: {resolved_patient.name}, MRN: {resolved_patient.mrn}, DOB: {resolved_patient.dob}, Gender: {resolved_patient.gender}, Blood: {resolved_patient.blood_type}"
+        })
 
     answer = copilot_agent.run(
         question=body.message,
@@ -68,6 +91,7 @@ async def copilot_chat(
         conversation_history=[m.model_dump() for m in (body.history or [])],
         consultation_id=body.consultation_id,
         context=body.context or "workspace",
+        missing_patient_id=(not body.patient_id and asked_about_patient),
     )
 
     return CopilotResponse(

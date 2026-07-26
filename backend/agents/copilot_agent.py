@@ -138,7 +138,7 @@ def _build_context_block(
     }
 
 
-def _build_lyzr_message(question: str, ctx: Dict[str, str]) -> str:
+def _build_lyzr_message(question: str, ctx: Dict[str, str], missing_patient_id: bool = False) -> str:
     """
     Compose the full message sent to the Lyzr agent.
     Lyzr handles conversation memory server-side via session_id,
@@ -159,7 +159,11 @@ def _build_lyzr_message(question: str, ctx: Dict[str, str]) -> str:
         parts += ["", "=== CONVERSATION HISTORY ===", ctx["history"]]
 
     parts += ["", "=== CLINICIAN QUESTION ===", question]
-    parts += ["", "(IMPORTANT: Reply directly to the clinician in conversational markdown format. DO NOT return raw JSON)"]
+    
+    if missing_patient_id:
+        parts += ["", "(IMPORTANT: The clinician is asking about a patient but did not provide a recognized name or MRN, and no patient is selected. Politely ask them to provide the patient's name or MRN so you can look them up.)"]
+    else:
+        parts += ["", "(IMPORTANT: Reply directly to the clinician in conversational markdown format. DO NOT return raw JSON)"]
 
     return "\n".join(parts)
 
@@ -180,6 +184,7 @@ class CopilotAgent:
         consultation_id: Optional[str] = None,
         context: str = "workspace",
         dashboard_stats: Optional[Dict] = None,
+        missing_patient_id: bool = False,
     ) -> str:
 
         ctx = _build_context_block(
@@ -187,7 +192,7 @@ class CopilotAgent:
         )
 
         # ── Tier 1: Lyzr AI Agent ────────────────────────────────────────────
-        lyzr_message = _build_lyzr_message(question, ctx)
+        lyzr_message = _build_lyzr_message(question, ctx, missing_patient_id)
         result = lyzr_chat(lyzr_message, agent_key="copilot")
         if result and len(result) > 10:
             parsed = extract_json(result)
@@ -204,6 +209,9 @@ class CopilotAgent:
             history=ctx["history"],
             question=question,
         )
+        if missing_patient_id:
+            prompt += "\n(IMPORTANT: The clinician is asking about a patient but did not provide a recognized name or MRN, and no patient is selected. Politely ask them to provide the patient's name or MRN so you can look them up.)"
+            
         result = llm_call(prompt)
         if result and len(result) > 10:
             parsed = extract_json(result)
@@ -213,6 +221,10 @@ class CopilotAgent:
 
         # ── Tier 3: Rich rule-based fallback ─────────────────────────────────
         print("[Copilot] All LLMs unavailable — using rule-based fallback.")
+        
+        if missing_patient_id:
+            return "Please provide the patient's name or MRN (Medical Record Number) so I can look them up."
+            
         return self._rule_based_fallback(question, consultation_context, patient_history, guidelines)
 
     def _format_json_response(self, data: dict) -> str:
