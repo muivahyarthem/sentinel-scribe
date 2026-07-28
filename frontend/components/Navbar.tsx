@@ -54,7 +54,7 @@ export default function Navbar() {
     <header className="w-full h-[72px] flex items-center flex-shrink-0 sticky top-0 z-50 bg-white border-b border-slate-200">
       <div className="flex items-center justify-between px-6 w-full max-w-7xl mx-auto">
         {/* Logo & Search */}
-        <div className="flex items-center gap-8 flex-1">
+        <div className="flex items-center gap-4 lg:gap-8">
           <Link href="/" className="flex items-center gap-3 flex-shrink-0">
             <div className="w-8 h-8 rounded bg-[#0F4C81] flex items-center justify-center text-white">
               <HeartPulse size={18} strokeWidth={2.5} />
@@ -78,7 +78,7 @@ export default function Navbar() {
         </div>
 
         {/* Desktop navigation */}
-        <nav className="hidden xl:flex items-center justify-center flex-1 gap-1">
+        <nav className="hidden xl:flex items-center justify-center gap-1">
           {NAV_LINKS.map(({ href, icon: Icon, label }) => {
             const active = pathname === href || (href !== '/' && pathname.startsWith(href));
             return (
@@ -95,7 +95,7 @@ export default function Navbar() {
         </nav>
 
         {/* Right side */}
-        <div className="flex items-center justify-end gap-3 flex-1">
+        <div className="flex items-center justify-end gap-3">
           {/* Notification bell */}
           <Button variant="ghost" size="icon" className="relative hidden md:flex text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-full">
             <Bell size={18} />
