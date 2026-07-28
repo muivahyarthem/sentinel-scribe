@@ -1,20 +1,31 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { Search, Plus, Filter, Users } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
-
-const MOCK_PATIENTS = [
-  { id: 'PAT-001', name: 'Alex Johnson', dob: '1990-03-15', gender: 'Male', doctor: 'Dr. Sarah Mitchell', condition: 'Hypertension' },
-  { id: 'PAT-002', name: 'Maria Garcia', dob: '1985-07-22', gender: 'Female', doctor: 'Dr. James Chen', condition: 'Arrhythmia' },
-  { id: 'PAT-003', name: 'David Smith', dob: '1978-11-05', gender: 'Male', doctor: 'Dr. Emily Rodriguez', condition: 'Osteoarthritis' },
-  { id: 'PAT-004', name: 'Emma Davis', dob: '2015-02-14', gender: 'Female', doctor: 'Dr. Michael Park', condition: 'Asthma' },
-  { id: 'PAT-005', name: 'Robert Wilson', dob: '1965-09-30', gender: 'Male', doctor: 'Dr. Lisa Thompson', condition: 'Psoriasis' },
-  { id: 'PAT-006', name: 'Linda Martinez', dob: '1972-04-18', gender: 'Female', doctor: 'Dr. Robert Hayes', condition: 'Type 2 Diabetes' },
-];
+import api from '@/lib/api';
+import { Patient } from '@/lib/types';
 
 export default function PatientsPage() {
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const res = await api.get('/patients');
+        setPatients(res.data);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPatients();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans">
       <Navbar />
@@ -45,31 +56,39 @@ export default function PatientsPage() {
           </div>
           
           <div className="divide-y divide-[#E2E8F0]">
-            {MOCK_PATIENTS.map((patient) => (
-              <Link
-                href={`/patients/${patient.id}`}
-                key={patient.id}
-                className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-[#0F4C81] text-white font-semibold">
-                      {patient.name.split(' ').map((n) => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-[#0F172A]">{patient.name}</p>
-                    <p className="text-sm text-[#64748B]">
-                      MRN: {patient.id} • {patient.gender} • DOB: {patient.dob}
-                    </p>
+            {loading ? (
+              <div className="p-8 text-center text-[#64748B]">Loading patients...</div>
+            ) : patients.length === 0 ? (
+              <div className="p-8 text-center text-[#64748B]">No patients found.</div>
+            ) : (
+              patients.map((patient) => (
+                <Link
+                  href={`/patients/${patient.id}`}
+                  key={patient.id}
+                  className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-[#0F4C81] text-white font-semibold">
+                        {patient.name.split(' ').map((n) => n[0]).join('').substring(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-semibold text-[#0F172A]">{patient.name}</p>
+                      <p className="text-sm text-[#64748B]">
+                        MRN: {patient.mrn || patient.id.substring(0, 8)} • {patient.gender || 'Unknown'} • DOB: {patient.dob || 'Unknown'}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-[#0F172A]">{patient.condition}</p>
-                  <p className="text-xs text-[#64748B]">Provider: {patient.doctor}</p>
-                </div>
-              </Link>
-            ))}
+                  <div className="hidden sm:block text-right">
+                    <p className="text-sm font-medium text-[#0F172A]">
+                      {patient.chronic_conditions?.length ? patient.chronic_conditions[0] : 'No known conditions'}
+                    </p>
+                    <p className="text-xs text-[#64748B]">Added: {patient.created_at ? new Date(patient.created_at).toLocaleDateString() : 'Unknown'}</p>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
         </div>
       </main>

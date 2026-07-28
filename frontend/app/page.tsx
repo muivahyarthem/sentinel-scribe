@@ -171,7 +171,7 @@ export default function DashboardPage() {
                     <div className="p-4 rounded-xl border border-amber-100 bg-amber-50/50 flex gap-3 items-start">
                       <AlertCircle size={18} className="text-amber-600 mt-0.5 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-semibold text-[#0F172A] mb-1">2 Pending Reviews</p>
+                        <p className="text-sm font-semibold text-[#0F172A] mb-1">{stats?.pending_reviews || 0} Pending Reviews</p>
                         <p className="text-xs text-[#64748B] leading-relaxed">
                           Documentation for your morning consultations require final sign-off.
                         </p>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
                       <div>
                         <p className="text-sm font-semibold text-[#0F172A] mb-1">New Lab Results</p>
                         <p className="text-xs text-[#64748B] leading-relaxed">
-                          Patient Sarah Jenkins has new CBC results ready for review.
+                          Patient {stats?.recent_patients?.[0]?.name || 'Sarah Jenkins'} has new CBC results ready for review.
                         </p>
                       </div>
                     </div>
