@@ -5,6 +5,15 @@ import { Search, Plus, Filter, Users } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import Link from 'next/link';
 
+const MOCK_PATIENTS = [
+  { id: 'PAT-001', name: 'Alex Johnson', dob: '1990-03-15', gender: 'Male', doctor: 'Dr. Sarah Mitchell', condition: 'Hypertension' },
+  { id: 'PAT-002', name: 'Maria Garcia', dob: '1985-07-22', gender: 'Female', doctor: 'Dr. James Chen', condition: 'Arrhythmia' },
+  { id: 'PAT-003', name: 'David Smith', dob: '1978-11-05', gender: 'Male', doctor: 'Dr. Emily Rodriguez', condition: 'Osteoarthritis' },
+  { id: 'PAT-004', name: 'Emma Davis', dob: '2015-02-14', gender: 'Female', doctor: 'Dr. Michael Park', condition: 'Asthma' },
+  { id: 'PAT-005', name: 'Robert Wilson', dob: '1965-09-30', gender: 'Male', doctor: 'Dr. Lisa Thompson', condition: 'Psoriasis' },
+  { id: 'PAT-006', name: 'Linda Martinez', dob: '1972-04-18', gender: 'Female', doctor: 'Dr. Robert Hayes', condition: 'Type 2 Diabetes' },
+];
+
 export default function PatientsPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] font-sans">
@@ -35,12 +44,32 @@ export default function PatientsPage() {
             </div>
           </div>
           
-          <div className="p-16 flex flex-col items-center justify-center text-center">
-            <div className="w-16 h-16 bg-[#F8FAFC] border border-[#E2E8F0] rounded-full flex items-center justify-center text-[#64748B] mb-4">
-              <Users size={32} />
-            </div>
-            <h3 className="text-[#0F172A] font-semibold text-lg mb-2">No patients found</h3>
-            <p className="text-[#64748B] max-w-sm">Try adjusting your search criteria. Patient records will automatically appear here once they complete their intake form.</p>
+          <div className="divide-y divide-[#E2E8F0]">
+            {MOCK_PATIENTS.map((patient) => (
+              <Link
+                href={`/patients/${patient.id}`}
+                key={patient.id}
+                className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+              >
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12">
+                    <AvatarFallback className="bg-[#0F4C81] text-white font-semibold">
+                      {patient.name.split(' ').map((n) => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-[#0F172A]">{patient.name}</p>
+                    <p className="text-sm text-[#64748B]">
+                      MRN: {patient.id} • {patient.gender} • DOB: {patient.dob}
+                    </p>
+                  </div>
+                </div>
+                <div className="hidden sm:block text-right">
+                  <p className="text-sm font-medium text-[#0F172A]">{patient.condition}</p>
+                  <p className="text-xs text-[#64748B]">Provider: {patient.doctor}</p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </main>

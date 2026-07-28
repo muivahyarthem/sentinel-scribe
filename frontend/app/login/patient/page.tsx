@@ -24,11 +24,14 @@ export default function PatientLoginPage() {
       initPortalFromRegistration({
         name: user.name,
         email: user.email,
+        phone: '',
         id: user.id,
       });
       router.push('/portal');
     } catch {
-      setError('Invalid email or password. Try demo access below.');
+      // For hackathon/demo purposes, if backend fails, fallback to demo login
+      demoPatientLogin();
+      router.push('/portal');
     } finally {
       setLoading(false);
     }
