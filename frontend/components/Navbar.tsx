@@ -51,7 +51,7 @@ export default function Navbar() {
   const handleLogout = () => { logout(); router.push('/login'); };
 
   return (
-    <header className="h-[72px] flex items-center flex-shrink-0 sticky top-0 z-50 bg-white border-b border-slate-200">
+    <header className="w-full h-[72px] flex items-center flex-shrink-0 sticky top-0 z-50 bg-white border-b border-slate-200">
       <div className="flex items-center justify-between px-6 w-full max-w-7xl mx-auto">
         {/* Logo & Search */}
         <div className="flex items-center gap-8 flex-1">
