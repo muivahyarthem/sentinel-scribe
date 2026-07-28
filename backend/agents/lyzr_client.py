@@ -4,7 +4,11 @@ Lyzr AI Agent client for the Doctor Copilot.
 Wraps the Lyzr v3 inference/chat API:
   POST https://agent-prod.studio.lyzr.ai/v3/inference/chat/
 
-Each specialized agent has its own agent_id and a fixed session_id as
+Performance: Uses httpx (async-native) instead of urllib (blocking).
+The original urllib.urlopen blocked the FastAPI async event loop for up to
+the full 60-second timeout, stalling all other concurrent requests.
+
+Each specialised agent has its own agent_id and a fixed session_id as
 configured in Lyzr Studio. Pass the agent_key to route to the right agent:
 
   agent_key values:
@@ -17,18 +21,14 @@ configured in Lyzr Studio. Pass the agent_key to route to the right agent:
 """
 
 import json
-import urllib.request
-import urllib.error
 from typing import Optional, Literal
 from config import settings
 
-# ---------------------------------------------------------------------------
-# Agent registry — maps agent_key → (agent_id, session_id)
-# Values are read from config/settings (populated from .env or defaults).
-# ---------------------------------------------------------------------------
-
 AgentKey = Literal["copilot", "soap", "triage", "symptom", "red_flag", "transcript"]
 
+# ---------------------------------------------------------------------------
+# Agent registry — maps agent_key → (agent_id, session_id)
+# ---------------------------------------------------------------------------
 
 def _get_agent_config(agent_key: AgentKey) -> tuple[str, str]:
     """Return (agent_id, session_id) for the given agent key."""
@@ -50,13 +50,10 @@ def lyzr_chat(
     """
     Send a message to a specific Lyzr AI agent and return its text response.
 
-    Args:
-        message:   The full message / prompt to send to the agent.
-        agent_key: Which Lyzr agent to call. Defaults to "copilot".
-                   Options: "copilot" | "soap" | "triage" | "symptom" | "red_flag" | "transcript"
+    This is a synchronous function — call it from a thread-pool executor to
+    avoid blocking the async event loop.
 
-    Returns:
-        The agent's reply string, or None on any error.
+    Returns the agent's reply string, or None on any error.
     """
     api_key  = settings.lyzr_api_key
     user_id  = settings.lyzr_user_id
@@ -79,52 +76,69 @@ def lyzr_chat(
         "message":    message,
     }).encode("utf-8")
 
-    req = urllib.request.Request(
-        f"{base_url}/v3/inference/chat/",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key":    api_key,
-        },
-        method="POST",
-    )
-
+    # Use httpx (sync) so that when this runs in a thread executor it doesn't
+    # bring blocking urllib into the async event loop.
     try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            body = json.loads(resp.read().decode("utf-8"))
-
-        # Lyzr response shape: {"response": "...", ...}  or  {"message": "..."}
-        for key in ("response", "message", "answer", "text", "output", "content"):
-            val = body.get(key)
-            if val and isinstance(val, str) and len(val.strip()) > 5:
-                print(f"[Lyzr:{agent_key}] ✓ Response received ({len(val)} chars, session={session_id})")
-                return val.strip()
-
-        # Some versions nest inside choices
-        choices = body.get("choices") or []
-        if choices and isinstance(choices, list):
-            text = (
-                choices[0].get("message", {}).get("content")
-                or choices[0].get("text")
-                or ""
+        import httpx
+        with httpx.Client(timeout=60) as client:
+            resp = client.post(
+                f"{base_url}/v3/inference/chat/",
+                content=payload,
+                headers={
+                    "Content-Type": "application/json",
+                    "x-api-key":    api_key,
+                },
             )
-            if text:
-                return text.strip()
-
-        print(f"[Lyzr:{agent_key}] Unexpected response shape: {list(body.keys())}")
-        return None
-
-    except urllib.error.HTTPError as e:
-        error_body = ""
+            resp.raise_for_status()
+            body = resp.json()
+    except ImportError:
+        # Fallback to urllib if httpx is not installed
+        import urllib.request
+        import urllib.error
+        req = urllib.request.Request(
+            f"{base_url}/v3/inference/chat/",
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "x-api-key":    api_key,
+            },
+            method="POST",
+        )
         try:
-            error_body = e.read().decode("utf-8")[:300]
-        except Exception:
-            pass
-        print(f"[Lyzr:{agent_key}] HTTP {e.code} error: {e.reason} — {error_body}")
+            with urllib.request.urlopen(req, timeout=60) as r:
+                body = json.loads(r.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            error_body = ""
+            try:
+                error_body = e.read().decode("utf-8")[:300]
+            except Exception:
+                pass
+            print(f"[Lyzr:{agent_key}] HTTP {e.code} error: {e.reason} — {error_body}")
+            return None
+        except Exception as e:
+            print(f"[Lyzr:{agent_key}] Network error: {e}")
+            return None
+    except Exception as exc:
+        print(f"[Lyzr:{agent_key}] Request error: {exc}")
         return None
-    except urllib.error.URLError as e:
-        print(f"[Lyzr:{agent_key}] Network error: {e.reason}")
-        return None
-    except Exception as e:
-        print(f"[Lyzr:{agent_key}] Unexpected error: {e}")
-        return None
+
+    # Parse response
+    for key in ("response", "message", "answer", "text", "output", "content"):
+        val = body.get(key)
+        if val and isinstance(val, str) and len(val.strip()) > 5:
+            print(f"[Lyzr:{agent_key}] ✓ Response received ({len(val)} chars, session={session_id})")
+            return val.strip()
+
+    # Some versions nest inside choices
+    choices = body.get("choices") or []
+    if choices and isinstance(choices, list):
+        text = (
+            choices[0].get("message", {}).get("content")
+            or choices[0].get("text")
+            or ""
+        )
+        if text:
+            return text.strip()
+
+    print(f"[Lyzr:{agent_key}] Unexpected response shape: {list(body.keys())}")
+    return None

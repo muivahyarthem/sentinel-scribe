@@ -1,7 +1,15 @@
 """
 Lyzr-style Pipeline Orchestrator
-Runs the full consultation pipeline sequentially:
-  Transcript → RedFlag → Symptom → Qdrant RAG → Triage → SOAP → Save
+
+Runs the full consultation pipeline:
+  Transcript → [RedFlag + Symptom in parallel] → Qdrant RAG → Triage → SOAP → Save
+
+Optimisations vs original:
+  • Steps 2 (RedFlag) and 3 (Symptom) now run concurrently with asyncio.gather —
+    they both only depend on the cleaned transcript, not on each other.
+    This shaves off the wall-clock time of whichever agent is faster.
+  • All three agents that were previously blocking (transcript, red_flag, symptom)
+    still run via their own executor wrappers inside the agent classes.
 """
 
 import asyncio
@@ -17,16 +25,16 @@ import qdrant_service as qdrant
 
 class ClinicalPipeline:
     """
-    Lyzr-style multi-agent orchestrator for clinical consultation analysis.
+    Multi-agent orchestrator for clinical consultation analysis.
     Each step is logged and the full result is returned.
     """
 
     def __init__(self):
         self.transcript_agent = TranscriptAgent()
-        self.red_flag_agent = RedFlagAgent()
-        self.symptom_agent = SymptomAgent()
-        self.triage_agent = TriageAgent()
-        self.soap_agent = SOAPAgent()
+        self.red_flag_agent   = RedFlagAgent()
+        self.symptom_agent    = SymptomAgent()
+        self.triage_agent     = TriageAgent()
+        self.soap_agent       = SOAPAgent()
 
     async def run(
         self,
@@ -39,29 +47,35 @@ class ClinicalPipeline:
 
         # ── Step 1: Clean Transcript ─────────────────────────────────────────
         print("[Pipeline] Step 1: TranscriptAgent")
-        cleaned = self.transcript_agent.run(transcript)
+        loop = asyncio.get_running_loop()
+        cleaned = await loop.run_in_executor(None, self.transcript_agent.run, transcript)
         steps.append({"step": "transcript_cleaning", "status": "done"})
 
-        # ── Step 2: Red Flag Detection ────────────────────────────────────────
-        print("[Pipeline] Step 2: RedFlagAgent")
-        red_flag_result = self.red_flag_agent.run(cleaned)
+        # ── Steps 2 & 3: RedFlag + Symptom — run in parallel ─────────────────
+        print("[Pipeline] Steps 2+3: RedFlagAgent + SymptomAgent (parallel)")
+        red_flag_result, symptom_result = await asyncio.gather(
+            loop.run_in_executor(None, self.red_flag_agent.run, cleaned),
+            loop.run_in_executor(None, self.symptom_agent.run, cleaned),
+        )
+        symptoms = symptom_result.get("symptoms", [])
         steps.append({
             "step": "red_flag_detection",
             "status": "done",
             "has_emergency": red_flag_result.get("has_emergency", False),
         })
-
-        # ── Step 3: Symptom Extraction ────────────────────────────────────────
-        print("[Pipeline] Step 3: SymptomAgent")
-        symptom_result = self.symptom_agent.run(cleaned)
-        symptoms = symptom_result.get("symptoms", [])
-        steps.append({"step": "symptom_extraction", "status": "done", "count": len(symptoms)})
+        steps.append({
+            "step": "symptom_extraction",
+            "status": "done",
+            "count": len(symptoms),
+        })
 
         # ── Step 4: Qdrant RAG (Guidelines + Patient Memory) ──────────────────
         print("[Pipeline] Step 4: Qdrant RAG")
-        symptom_query = " ".join(
-            s.get("name", "") for s in symptoms[:5]
-        ) + " " + " ".join(red_flag_result.get("red_flags", []))
+        symptom_query = (
+            " ".join(s.get("name", "") for s in symptoms[:5])
+            + " "
+            + " ".join(red_flag_result.get("red_flags", []))
+        ).strip()
 
         guidelines, patient_memory = await asyncio.gather(
             qdrant.search_guidelines(symptom_query, top_k=3),
@@ -79,17 +93,24 @@ class ClinicalPipeline:
             patient_profile=patient_profile,
             patient_memory=patient_memory,
         )
-        steps.append({"step": "triage_classification", "status": "done", "priority": triage_result.get("priority")})
+        steps.append({
+            "step": "triage_classification",
+            "status": "done",
+            "priority": triage_result.get("priority"),
+        })
 
         # ── Step 6: SOAP Note Generation ──────────────────────────────────────
         print("[Pipeline] Step 6: SOAPAgent")
-        soap_result = self.soap_agent.run(
-            transcript=cleaned,
-            symptoms=symptoms,
-            red_flags=red_flag_result.get("red_flags", []),
-            priority=triage_result.get("priority", "P3"),
-            patient_profile=patient_profile,
-            patient_memory=patient_memory,
+        soap_result = await loop.run_in_executor(
+            None,
+            lambda: self.soap_agent.run(
+                transcript=cleaned,
+                symptoms=symptoms,
+                red_flags=red_flag_result.get("red_flags", []),
+                priority=triage_result.get("priority", "P3"),
+                patient_profile=patient_profile,
+                patient_memory=patient_memory,
+            ),
         )
         steps.append({"step": "soap_generation", "status": "done"})
 
@@ -99,7 +120,7 @@ class ClinicalPipeline:
             summary = (
                 f"Consultation: {symptom_result.get('chief_complaint', 'General visit')}. "
                 f"Priority: {triage_result.get('priority')}. "
-                f"Symptoms: {', '.join(s.get('name','') for s in symptoms[:5])}. "
+                f"Symptoms: {', '.join(s.get('name', '') for s in symptoms[:5])}. "
                 f"Plan: {soap_result.get('plan', '')[:200]}"
             )
             await qdrant.upsert_patient_memory(

@@ -4,22 +4,25 @@ from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 from .embed import embed_text
 from .qdrant import get_qdrant_client
 
+
 def search_collection_sync(
-    collection_name: str, 
-    query: str, 
+    collection_name: str,
+    query: str,
     top_k: int = 5,
-    filter_dict: Optional[Dict[str, Any]] = None
+    filter_dict: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """
-    Embeds a query and searches the specified collection.
-    Optional filter_dict can be used to filter by payload fields (e.g. {"patient_id": "123"}).
+    Embeds a query and searches the specified Qdrant collection.
+
+    Uses the module-level singleton client — no per-call reconnection overhead.
+    Optional filter_dict filters by payload fields (e.g. {"patient_id": "123"}).
     """
     client = get_qdrant_client()
     if not client:
         return []
 
     vector = embed_text(query)
-    
+
     query_filter = None
     if filter_dict:
         must_conditions = [
@@ -36,10 +39,8 @@ def search_collection_sync(
             limit=top_k,
             with_payload=True,
         )
-        client.close()
+        # Do NOT close — keep singleton alive
         return [r.payload for r in results]
     except Exception as e:
         print(f"[RAG Retrieve] Error searching collection {collection_name}: {e}")
-        if client:
-            client.close()
         return []

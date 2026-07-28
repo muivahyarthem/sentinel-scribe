@@ -1,9 +1,10 @@
+import asyncio
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from database import get_db
-from models import User, Consultation, Symptom, TriageResult, SoapNote
+from models import User, Patient, Consultation, Symptom, TriageResult, SoapNote
 from schemas import CopilotRequest, CopilotResponse
 from auth import get_current_user
 from agents.copilot_agent import CopilotAgent
@@ -70,7 +71,6 @@ async def copilot_chat(
             }
 
     # Retrieve patient memory and guidelines in parallel
-    import asyncio
     patient_memory, guidelines = await asyncio.gather(
         qdrant.search_patient_memory(body.patient_id, body.message, top_k=4) if body.patient_id else asyncio.sleep(0, result=[]),
         qdrant.search_guidelines(body.message, top_k=2),

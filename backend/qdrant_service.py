@@ -3,17 +3,28 @@ Qdrant vector database service.
 Manages two collections:
   - clinical_guidelines : embedded triage/clinical rules for RAG
   - patient_memory      : per-patient consultation history
+
+Performance notes
+-----------------
+* QdrantClient is created once as a module-level singleton.
+  Re-creating it (and running get_collections() as a connectivity test)
+  on every request added ~200-400 ms of latency per call.
+* All blocking Qdrant/embedding operations are offloaded to a thread-pool
+  executor via asyncio.run_in_executor so the event loop is never blocked.
+* asyncio.get_running_loop() replaces the deprecated get_event_loop().
 """
 
 import uuid
 import asyncio
 from functools import partial
 from typing import Optional, List, Dict, Any
+
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import (
     Distance, VectorParams, PointStruct,
     Filter, FieldCondition, MatchValue,
 )
+
 from config import settings
 from rag.embed import embed_text as rag_embed_text
 from rag.qdrant import init_collection as rag_init_collection, upsert_document as rag_upsert_document
@@ -21,12 +32,20 @@ from rag.retrieve import search_collection_sync as rag_search_collection_sync
 
 VECTOR_SIZE = 768   # text-embedding-004 / fallback hash-based mock
 
-# Collection names
-GUIDELINES_COLLECTION = "clinical_guidelines"
+GUIDELINES_COLLECTION   = "clinical_guidelines"
 PATIENT_MEMORY_COLLECTION = "patient_memory"
+
+# ─── Singleton Qdrant client ──────────────────────────────────────────────────
+# Created once; reused for every request. Thread-safe for read operations.
+# Write operations are serialised per-collection by Qdrant itself.
+_qdrant_client: Optional[QdrantClient] = None
 
 
 def _get_client() -> Optional[QdrantClient]:
+    """Return the module-level singleton QdrantClient (or None if unavailable)."""
+    global _qdrant_client
+    if _qdrant_client is not None:
+        return _qdrant_client
     try:
         client = QdrantClient(
             host=settings.qdrant_host,
@@ -34,9 +53,11 @@ def _get_client() -> Optional[QdrantClient]:
             api_key=settings.qdrant_api_key or None,
             timeout=5,
         )
-        client.get_collections()   # connectivity test
-        return client
-    except Exception:
+        client.get_collections()   # connectivity test — only once at startup
+        _qdrant_client = client
+        return _qdrant_client
+    except Exception as exc:
+        print(f"[Qdrant] Client init failed: {exc}")
         return None
 
 
@@ -59,17 +80,16 @@ def _embed_text(text: str) -> List[float]:
         import hashlib
         h = hashlib.sha256(text.encode()).digest()
         base = [((b / 255.0) * 2 - 1) for b in h]
-        repeated = (base * (VECTOR_SIZE // len(base) + 1))[:VECTOR_SIZE]
-        return repeated
+        return (base * (VECTOR_SIZE // len(base) + 1))[:VECTOR_SIZE]
 
 
 async def _run_in_executor(fn, *args):
-    """Run a synchronous blocking function in a thread pool to avoid blocking the event loop."""
-    loop = asyncio.get_event_loop()
+    """Run a synchronous blocking function in a thread pool executor."""
+    loop = asyncio.get_running_loop()   # replaces deprecated get_event_loop()
     return await loop.run_in_executor(None, partial(fn, *args))
 
 
-# ─── Collection Setup ────────────────────────────────────────────────────────
+# ─── Collection Setup ─────────────────────────────────────────────────────────
 
 def _init_collections_sync():
     client = _get_client()
@@ -86,18 +106,16 @@ def _init_collections_sync():
                 vectors_config=VectorParams(size=VECTOR_SIZE, distance=Distance.COSINE),
             )
             print(f"[OK] Created Qdrant collection: {name}")
-            
-    # Also initialize via new RAG module just in case
-    rag_init_collection(GUIDELINES_COLLECTION)
 
-    client.close()
+    # Also initialise via RAG module (idempotent)
+    rag_init_collection(GUIDELINES_COLLECTION)
 
 
 async def init_collections():
     await _run_in_executor(_init_collections_sync)
 
 
-# ─── Patient Memory ──────────────────────────────────────────────────────────
+# ─── Patient Memory ───────────────────────────────────────────────────────────
 
 def _upsert_patient_memory_sync(patient_id, consultation_id, text, metadata):
     client = _get_client()
@@ -116,7 +134,6 @@ def _upsert_patient_memory_sync(patient_id, consultation_id, text, metadata):
         },
     )
     client.upsert(collection_name=PATIENT_MEMORY_COLLECTION, points=[point])
-    client.close()
 
 
 async def upsert_patient_memory(
@@ -143,7 +160,6 @@ def _search_patient_memory_sync(patient_id, query, top_k):
         limit=top_k,
         with_payload=True,
     )
-    client.close()
     return [r.payload for r in results]
 
 
@@ -155,7 +171,7 @@ async def search_patient_memory(
     return await _run_in_executor(_search_patient_memory_sync, patient_id, query, top_k)
 
 
-# ─── Clinical Guidelines RAG ─────────────────────────────────────────────────
+# ─── Clinical Guidelines RAG ──────────────────────────────────────────────────
 
 def _search_guidelines_sync(query, top_k):
     results = rag_search_collection_sync(GUIDELINES_COLLECTION, query, top_k=top_k)
@@ -177,7 +193,7 @@ async def upsert_guideline(guideline_id: str, title: str, text: str, category: s
     await _run_in_executor(_upsert_guideline_sync, guideline_id, title, text, category)
 
 
-# ─── Mock Fallbacks ──────────────────────────────────────────────────────────
+# ─── Mock Fallbacks ───────────────────────────────────────────────────────────
 
 def _mock_patient_memory(patient_id: str) -> List[Dict]:
     return [
