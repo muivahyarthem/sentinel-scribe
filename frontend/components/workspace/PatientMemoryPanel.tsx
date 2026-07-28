@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
 import { Patient } from '@/lib/types';
 import { formatAge, formatDate, getInitials, getAvatarColor } from '@/lib/utils';
@@ -10,7 +11,7 @@ import {
   ChevronRight, User, Activity, Clock, Shield,
   History, Plus, Trash2, Brain, Stethoscope,
   FileText, CheckCircle, AlertCircle, TrendingUp,
-  ChevronDown, ChevronUp, Zap
+  ChevronDown, ChevronUp, Zap, UserPlus, Users, X
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -55,6 +56,7 @@ function parseMemoryText(raw: string): string | null {
 }
 
 export default function PatientMemoryPanel({ selectedPatientId, onSelectPatient }: Props) {
+  const router = useRouter();
   const [patients, setPatients]   = useState<Patient[]>([]);
   const [filtered, setFiltered]   = useState<Patient[]>([]);
   const [search, setSearch]       = useState('');
@@ -62,6 +64,8 @@ export default function PatientMemoryPanel({ selectedPatientId, onSelectPatient 
   const [memoryLoading, setMemoryLoading] = useState(false);
   const [patientConsultations, setPatientConsultations] = useState<any[]>([]);
   const [expandedConsult, setExpandedConsult] = useState<string | null>(null);
+  const [showPatientTypeModal, setShowPatientTypeModal] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.get('/patients').then(r => {
@@ -69,6 +73,21 @@ export default function PatientMemoryPanel({ selectedPatientId, onSelectPatient 
       setFiltered(r.data);
     }).finally(() => setLoading(false));
   }, []);
+
+  const handleAddClick = () => {
+    setShowPatientTypeModal(true);
+  };
+
+  const handleNewPatient = () => {
+    setShowPatientTypeModal(false);
+    router.push('/patients/new');
+  };
+
+  const handleReturningPatient = () => {
+    setShowPatientTypeModal(false);
+    // Focus the search bar so the doctor can find the returning patient
+    setTimeout(() => searchRef.current?.focus(), 100);
+  };
 
   useEffect(() => {
     const q = search.toLowerCase();
@@ -109,6 +128,78 @@ export default function PatientMemoryPanel({ selectedPatientId, onSelectPatient 
   return (
     <div className="h-full flex flex-col relative bg-white dark:bg-slate-950">
 
+      {/* ── New/Returning Patient Modal ───────────────────────── */}
+      <AnimatePresence>
+        {showPatientTypeModal && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPatientTypeModal(false)}
+            />
+
+            {/* Modal */}
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none"
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+            >
+              <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 w-full max-w-sm pointer-events-auto overflow-hidden">
+                {/* Modal header */}
+                <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-100 dark:border-slate-800">
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Add Patient</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Is this a new or returning patient?</p>
+                  </div>
+                  <button
+                    onClick={() => setShowPatientTypeModal(false)}
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+
+                {/* Options */}
+                <div className="p-4 grid grid-cols-2 gap-3">
+                  {/* New Patient */}
+                  <button
+                    onClick={handleNewPatient}
+                    className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-blue-200 bg-blue-50/50 hover:bg-blue-50 hover:border-blue-400 dark:border-blue-800 dark:bg-blue-900/10 dark:hover:bg-blue-900/20 dark:hover:border-blue-600 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <UserPlus size={22} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">New Patient</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">Register for the first time</p>
+                    </div>
+                  </button>
+
+                  {/* Returning Patient */}
+                  <button
+                    onClick={handleReturningPatient}
+                    className="group flex flex-col items-center gap-3 p-5 rounded-xl border-2 border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 hover:border-emerald-400 dark:border-emerald-800 dark:bg-emerald-900/10 dark:hover:bg-emerald-900/20 dark:hover:border-emerald-600 transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center group-hover:scale-105 transition-transform">
+                      <Users size={22} className="text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">Returning</p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">Search existing records</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* ── Header ──────────────────────────────────────────────── */}
       <div className="flex items-center justify-between px-4 h-14 sticky top-0 z-10 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
         <div>
@@ -119,9 +210,12 @@ export default function PatientMemoryPanel({ selectedPatientId, onSelectPatient 
         </div>
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-emerald-500" />
-          <Link href="/patients/new" className={buttonVariants({ variant: 'outline', size: 'icon', className: 'w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 dark:border-blue-800' })}>
+          <button
+            onClick={handleAddClick}
+            className={buttonVariants({ variant: 'outline', size: 'icon', className: 'w-7 h-7 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-600 border-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 dark:text-blue-400 dark:border-blue-800' })}
+          >
             <Plus size={14} strokeWidth={2.5} />
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -130,6 +224,7 @@ export default function PatientMemoryPanel({ selectedPatientId, onSelectPatient 
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <Input
+            ref={searchRef}
             className="pl-9 h-9 text-sm bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-100"
             placeholder="Search patients…"
             value={search}
