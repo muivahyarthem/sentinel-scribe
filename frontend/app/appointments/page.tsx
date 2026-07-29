@@ -287,6 +287,11 @@ function AppointmentCard({ apt, dimmed }: { apt: DoctorAppointmentEntry; dimmed?
                 Cancelled at {new Date(apt.cancelledAt).toLocaleString()}
               </p>
             )}
+            {apt.bookedAt && !apt.cancelledAt && (
+              <p className="text-xs text-blue-500 mt-1.5">
+                Booked at {new Date(apt.bookedAt).toLocaleString()}
+              </p>
+            )}
           </div>
         </div>
         <Badge className={`shrink-0 ${sc.cls}`}>{sc.label}</Badge>

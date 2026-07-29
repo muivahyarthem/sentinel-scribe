@@ -34,7 +34,7 @@ export default function AppointmentsPage() {
     const updated = {
       ...data,
       appointments: data.appointments.map(a =>
-        a.id === id ? { ...a, status: 'cancelled' as const } : a
+        a.id === id ? { ...a, status: 'cancelled' as const, cancelledAt: new Date().toISOString() } : a
       ),
       notifications: [
         {
@@ -54,13 +54,11 @@ export default function AppointmentsPage() {
 
     // Sync cancellation to doctor store
     if (apt) {
-      const patientRaw = typeof window !== 'undefined' ? localStorage.getItem('auth_user') : null;
-      const patient = patientRaw ? JSON.parse(patientRaw) : {};
       upsertDoctorAppointment({
         id: apt.id,
-        patientId: patient.id || data.profile.id,
-        patientName: patient.name || data.profile.name,
-        patientEmail: patient.email || data.profile.email,
+        patientId: data.profile.id,
+        patientName: data.profile.name,
+        patientEmail: data.profile.email,
         doctorId: apt.doctorId,
         doctorName: apt.doctorName,
         department: apt.department,
@@ -75,7 +73,7 @@ export default function AppointmentsPage() {
         type: 'cancellation',
         appointmentId: apt.id,
         title: 'Appointment Cancelled',
-        message: `${patient.name || data.profile.name} has cancelled their appointment on ${apt.date} at ${apt.time}.`,
+        message: `${data.profile.name} has cancelled their appointment on ${apt.date} at ${apt.time}.`,
       });
     }
 
@@ -189,13 +187,11 @@ export default function AppointmentsPage() {
             setData(updated);
 
             // Sync new booking to doctor store
-            const patientRaw = typeof window !== 'undefined' ? localStorage.getItem('auth_user') : null;
-            const patient = patientRaw ? JSON.parse(patientRaw) : {};
             upsertDoctorAppointment({
               id: apt.id,
-              patientId: patient.id || data.profile.id,
-              patientName: patient.name || data.profile.name,
-              patientEmail: patient.email || data.profile.email,
+              patientId: data.profile.id,
+              patientName: data.profile.name,
+              patientEmail: data.profile.email,
               doctorId: apt.doctorId,
               doctorName: apt.doctorName,
               department: apt.department,
@@ -209,7 +205,7 @@ export default function AppointmentsPage() {
               type: 'new_appointment',
               appointmentId: apt.id,
               title: 'New Appointment Booked',
-              message: `${patient.name || data.profile.name} booked an appointment on ${apt.date} at ${apt.time} (${apt.department}, Room ${apt.roomNumber}).`,
+              message: `${data.profile.name} booked an appointment on ${apt.date} at ${apt.time} (${apt.department}, Room ${apt.roomNumber}).`,
             });
 
             setShowBook(false);
@@ -245,13 +241,11 @@ export default function AppointmentsPage() {
             setData(updated);
 
             // Sync reschedule to doctor store
-            const patientRaw = typeof window !== 'undefined' ? localStorage.getItem('auth_user') : null;
-            const patient = patientRaw ? JSON.parse(patientRaw) : {};
             upsertDoctorAppointment({
               id: showReschedule.id,
-              patientId: patient.id || data.profile.id,
-              patientName: patient.name || data.profile.name,
-              patientEmail: patient.email || data.profile.email,
+              patientId: data.profile.id,
+              patientName: data.profile.name,
+              patientEmail: data.profile.email,
               doctorId: apt.doctorId,
               doctorName: apt.doctorName,
               department: apt.department,
@@ -265,7 +259,7 @@ export default function AppointmentsPage() {
               type: 'reschedule',
               appointmentId: showReschedule.id,
               title: 'Appointment Rescheduled',
-              message: `${patient.name || data.profile.name} rescheduled their appointment to ${apt.date} at ${apt.time}.`,
+              message: `${data.profile.name} rescheduled their appointment to ${apt.date} at ${apt.time}.`,
             });
 
             setShowReschedule(null);
@@ -295,6 +289,16 @@ function AppointmentCard({ apt, onCancel, onReschedule }: {
               <span className="flex items-center gap-1"><Clock size={12} /> {apt.time}</span>
               <span className="flex items-center gap-1"><MapPin size={12} /> Room {apt.roomNumber}</span>
             </div>
+            {apt.cancelledAt && (
+              <p className="text-xs text-red-500 mt-1.5">
+                Cancelled at {new Date(apt.cancelledAt).toLocaleString()}
+              </p>
+            )}
+            {apt.bookedAt && !apt.cancelledAt && (
+              <p className="text-xs text-blue-500 mt-1.5">
+                Booked at {new Date(apt.bookedAt).toLocaleString()}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -334,6 +338,7 @@ function BookModal({ onClose, onBook, existing }: {
       date,
       time,
       status: 'scheduled',
+      bookedAt: new Date().toISOString(),
     });
   };
 

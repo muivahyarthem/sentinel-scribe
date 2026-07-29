@@ -51,6 +51,8 @@ export interface Appointment {
   date: string;
   time: string;
   status: 'scheduled' | 'completed' | 'cancelled';
+  bookedAt?: string;
+  cancelledAt?: string;
 }
 
 export interface BillLineItem {
