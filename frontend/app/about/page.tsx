@@ -11,25 +11,25 @@ export default function AboutPage() {
       name: 'Yarthem Muivah',
       role: 'Project Lead & AI Engineer',
       description: 'Led the architecture, AI engineering, and development of SentinelScribe.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+      image: '/team/yarthem.jpg',
     },
     {
       name: 'Shaina Asheal Veigas',
       role: 'UI/UX Designer & Documentation',
       description: 'Designed the user experience and contributed to project documentation.',
-      image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop',
+      image: '/team/shaina.jpeg',
     },
     {
       name: 'Sumedha K N',
       role: 'UI/UX Designer & Documentation',
       description: 'Contributed to UI/UX design and project documentation.',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop',
+      image: '/team/sumedha.jpeg',
     },
     {
       name: 'Owaize Sharieff Mohammed',
       role: 'AI Engineer & Backend Developer',
       description: 'Developed backend services and AI integrations.',
-      image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+      image: '/team/owaize.jpeg',
     }
   ];
 
@@ -110,6 +110,17 @@ export default function AboutPage() {
           
           <div className="space-y-4">
             <p className="text-lg text-slate-500 font-medium">Special thanks to</p>
+            
+            <div className="flex justify-center mt-6 mb-4">
+              <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-slate-50 shadow-sm">
+                <img 
+                  src="/team/Dalvin.jpg" 
+                  alt="Dr. Dalvin Vinoth Kumar A" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            
             <h3 className="text-2xl md:text-3xl font-extrabold text-[#0F4C81]">Dr. Dalvin Vinoth Kumar A</h3>
             
             <div className="inline-block bg-slate-50/80 rounded-2xl p-5 my-5 border border-slate-100">
