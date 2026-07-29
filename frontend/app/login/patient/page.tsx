@@ -21,12 +21,16 @@ export default function PatientLoginPage() {
     setError('');
     try {
       const { user } = await login(email, password);
-      initPortalFromRegistration({
-        name: user.name,
-        email: user.email,
-        phone: '',
-        id: user.id,
-      });
+      // Only init portal data if none exists yet — preserve existing appointments etc.
+      const STORAGE_KEY = 'sentinel_patient_portal';
+      if (!localStorage.getItem(STORAGE_KEY)) {
+        initPortalFromRegistration({
+          name: user.name,
+          email: user.email,
+          phone: '',
+          id: user.id,
+        });
+      }
       router.push('/portal');
     } catch (err: any) {
       if (err.response?.status === 401 || err.response?.status === 404) {

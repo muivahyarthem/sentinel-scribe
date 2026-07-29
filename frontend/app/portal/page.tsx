@@ -1,23 +1,50 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Calendar, FileText, Shield, CreditCard, Bell, User,
-  MapPin, Clock, ChevronRight, Stethoscope,
+  MapPin, Clock, ChevronRight, Stethoscope, X, CheckCircle,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { getInitials } from '@/lib/utils';
 import {
-  getPortalData, calcAge, PortalData,
+  getPortalData, savePortalData, calcAge, PortalData,
 } from '@/lib/patientPortal';
 
 export default function PatientDashboard() {
   const [data, setData] = useState<PortalData | null>(null);
+  const [popupNotif, setPopupNotif] = useState<{ title: string; message: string } | null>(null);
+  const seenNotifIds = useRef<Set<string>>(new Set());
+
+  const refresh = () => {
+    const fresh = getPortalData();
+    setData(fresh);
+
+    // Show popup for any new unread appointment notifications
+    const newUnread = fresh.notifications.filter(
+      n => !n.read && n.type === 'appointment' && !seenNotifIds.current.has(n.id)
+    );
+    newUnread.forEach(n => seenNotifIds.current.add(n.id));
+    if (newUnread.length > 0) {
+      const latest = newUnread[0];
+      setPopupNotif({ title: latest.title, message: latest.message });
+      setTimeout(() => setPopupNotif(null), 6000);
+    }
+  };
 
   useEffect(() => {
-    setData(getPortalData());
+    refresh();
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(); };
+    const onFocus   = () => refresh();
+    document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('focus', onFocus);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!data) {
@@ -34,6 +61,33 @@ export default function PatientDashboard() {
 
   return (
     <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      {/* Appointment notification popup */}
+      {popupNotif && (
+        <div className="fixed top-20 right-4 z-50 max-w-sm w-full animate-in slide-in-from-right fade-in duration-300">
+          <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xl p-4 flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+              <CheckCircle size={20} className="text-[#2563EB]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-[#0F172A] text-sm">{popupNotif.title}</p>
+              <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">{popupNotif.message}</p>
+              <Link
+                href="/portal/appointments"
+                className="inline-block mt-2 text-xs font-medium text-[#2563EB] hover:underline"
+              >
+                View appointment →
+              </Link>
+            </div>
+            <button
+              onClick={() => setPopupNotif(null)}
+              className="p-1 rounded-lg hover:bg-slate-100 text-[#94A3B8] shrink-0"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-[#0F172A] tracking-tight">
           Welcome back, {profile.name.split(' ')[0]}
