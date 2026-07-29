@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import {
   Calendar, Clock, MapPin, User, Bell, BellOff,
-  CheckCircle2, XCircle, RefreshCw, ChevronDown, ChevronUp,
+  CheckCircle2, XCircle, RefreshCw, ChevronDown, ChevronUp, X,
 } from 'lucide-react';
 import {
   getDoctorAppointments, getDoctorNotifications,
@@ -60,8 +60,22 @@ export default function DoctorAppointmentsPage() {
     ? appointments
     : appointments.filter(a => a.status === filter);
 
-  const upcoming  = filtered.filter(a => a.status === 'scheduled');
-  const others    = filtered.filter(a => a.status !== 'scheduled');
+  const upcoming  = filtered.filter(a => a.status === 'scheduled' || a.status === 'rescheduled');
+  const others    = filtered.filter(a => a.status !== 'scheduled' && a.status !== 'rescheduled');
+
+  const [popupNotif, setPopupNotif] = useState<{ title: string; message: string; type: string } | null>(null);
+  const seenNotifIds = useRef<Set<string>>(new Set());
+
+  // Listen for new notifications and trigger popup
+  useEffect(() => {
+    const newUnread = notifications.filter(n => !n.read && !seenNotifIds.current.has(n.id));
+    newUnread.forEach(n => seenNotifIds.current.add(n.id));
+    if (newUnread.length > 0) {
+      const latest = newUnread[0];
+      setPopupNotif({ title: latest.title, message: latest.message, type: latest.type });
+      setTimeout(() => setPopupNotif(null), 6000);
+    }
+  }, [notifications]);
 
   const handleMarkRead = (id: string) => {
     markDoctorNotificationRead(id);
@@ -78,6 +92,29 @@ export default function DoctorAppointmentsPage() {
       <Navbar />
 
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-10">
+        
+        {/* Doctor notification popup */}
+        {popupNotif && (
+          <div className="fixed top-24 right-4 z-50 max-w-sm w-full animate-in slide-in-from-right fade-in duration-300">
+            <div className="bg-white border border-[#E2E8F0] rounded-2xl shadow-xl p-4 flex items-start gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                NOTIF_CONFIG[popupNotif.type as keyof typeof NOTIF_CONFIG]?.color || 'bg-blue-50 text-blue-600'
+              }`}>
+                <Bell size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-[#0F172A] text-sm">{popupNotif.title}</p>
+                <p className="text-xs text-[#64748B] mt-0.5 leading-relaxed">{popupNotif.message}</p>
+              </div>
+              <button
+                onClick={() => setPopupNotif(null)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-[#94A3B8] shrink-0"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -204,12 +241,12 @@ export default function DoctorAppointmentsPage() {
           </section>
         )}
 
-        {/* Past / Cancelled / Rescheduled */}
+        {/* Past / Cancelled */}
         {others.length > 0 && (
           <section>
             <h2 className="text-lg font-semibold text-[#0F172A] mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-slate-400 inline-block" />
-              Other ({others.length})
+              Past / Cancelled ({others.length})
             </h2>
             <div className="space-y-3">
               {others.map(apt => (
