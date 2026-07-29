@@ -8,6 +8,9 @@ import {
   getPortalData, savePortalData, getDoctorsByDepartment,
   generateBill, DEPARTMENTS, PortalData, Appointment, Doctor,
 } from '@/lib/patientPortal';
+import {
+  upsertDoctorAppointment, addDoctorNotification,
+} from '@/lib/doctorAppointments';
 import { Badge } from '@/components/ui/badge';
 import { getInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -27,6 +30,7 @@ export default function AppointmentsPage() {
 
   const cancelAppointment = (id: string) => {
     if (!data) return;
+    const apt = data.appointments.find(a => a.id === id);
     const updated = {
       ...data,
       appointments: data.appointments.map(a =>
@@ -47,6 +51,34 @@ export default function AppointmentsPage() {
     };
     savePortalData(updated);
     setData(updated);
+
+    // Sync cancellation to doctor store
+    if (apt) {
+      const patientRaw = typeof window !== 'undefined' ? localStorage.getItem('auth_user') : null;
+      const patient = patientRaw ? JSON.parse(patientRaw) : {};
+      upsertDoctorAppointment({
+        id: apt.id,
+        patientId: patient.id || data.profile.id,
+        patientName: patient.name || data.profile.name,
+        patientEmail: patient.email || data.profile.email,
+        doctorId: apt.doctorId,
+        doctorName: apt.doctorName,
+        department: apt.department,
+        roomNumber: apt.roomNumber,
+        date: apt.date,
+        time: apt.time,
+        status: 'cancelled',
+        bookedAt: apt.date,
+        cancelledAt: new Date().toISOString(),
+      });
+      addDoctorNotification({
+        type: 'cancellation',
+        appointmentId: apt.id,
+        title: 'Appointment Cancelled',
+        message: `${patient.name || data.profile.name} has cancelled their appointment on ${apt.date} at ${apt.time}.`,
+      });
+    }
+
     showToast('Appointment cancelled.');
   };
 
@@ -155,6 +187,31 @@ export default function AppointmentsPage() {
             };
             savePortalData(updated);
             setData(updated);
+
+            // Sync new booking to doctor store
+            const patientRaw = typeof window !== 'undefined' ? localStorage.getItem('auth_user') : null;
+            const patient = patientRaw ? JSON.parse(patientRaw) : {};
+            upsertDoctorAppointment({
+              id: apt.id,
+              patientId: patient.id || data.profile.id,
+              patientName: patient.name || data.profile.name,
+              patientEmail: patient.email || data.profile.email,
+              doctorId: apt.doctorId,
+              doctorName: apt.doctorName,
+              department: apt.department,
+              roomNumber: apt.roomNumber,
+              date: apt.date,
+              time: apt.time,
+              status: 'scheduled',
+              bookedAt: new Date().toISOString(),
+            });
+            addDoctorNotification({
+              type: 'new_appointment',
+              appointmentId: apt.id,
+              title: 'New Appointment Booked',
+              message: `${patient.name || data.profile.name} booked an appointment on ${apt.date} at ${apt.time} (${apt.department}, Room ${apt.roomNumber}).`,
+            });
+
             setShowBook(false);
             showToast('Appointment booked successfully!');
           }}
@@ -186,6 +243,31 @@ export default function AppointmentsPage() {
             };
             savePortalData(updated);
             setData(updated);
+
+            // Sync reschedule to doctor store
+            const patientRaw = typeof window !== 'undefined' ? localStorage.getItem('auth_user') : null;
+            const patient = patientRaw ? JSON.parse(patientRaw) : {};
+            upsertDoctorAppointment({
+              id: showReschedule.id,
+              patientId: patient.id || data.profile.id,
+              patientName: patient.name || data.profile.name,
+              patientEmail: patient.email || data.profile.email,
+              doctorId: apt.doctorId,
+              doctorName: apt.doctorName,
+              department: apt.department,
+              roomNumber: apt.roomNumber,
+              date: apt.date,
+              time: apt.time,
+              status: 'rescheduled',
+              bookedAt: new Date().toISOString(),
+            });
+            addDoctorNotification({
+              type: 'reschedule',
+              appointmentId: showReschedule.id,
+              title: 'Appointment Rescheduled',
+              message: `${patient.name || data.profile.name} rescheduled their appointment to ${apt.date} at ${apt.time}.`,
+            });
+
             setShowReschedule(null);
             showToast('Appointment rescheduled.');
           }}

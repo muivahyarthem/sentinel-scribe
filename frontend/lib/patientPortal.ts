@@ -128,6 +128,8 @@ export const MOCK_DOCTORS: Doctor[] = [
 ];
 
 function defaultPortalData(profile?: Partial<PatientProfile>): PortalData {
+  const isDemo = (!profile?.email || profile.email === 'alex.johnson@email.com');
+
   const p: PatientProfile = {
     id: profile?.id || 'PAT-2024-0847',
     name: profile?.name || 'Alex Johnson',
@@ -142,11 +144,11 @@ function defaultPortalData(profile?: Partial<PatientProfile>): PortalData {
   return {
     profile: p,
     currentDoctor: MOCK_DOCTORS[0],
-    previousDoctors: [
+    previousDoctors: isDemo ? [
       { id: 'pd1', name: 'Dr. James Chen', department: 'Cardiology', visitDate: '2025-11-20' },
       { id: 'pd2', name: 'Dr. Lisa Thompson', department: 'Dermatology', visitDate: '2025-09-08' },
-    ],
-    soapRecords: [
+    ] : [],
+    soapRecords: isDemo ? [
       {
         id: 'soap1',
         date: '2026-01-15',
@@ -183,8 +185,8 @@ function defaultPortalData(profile?: Partial<PatientProfile>): PortalData {
         assessment: 'Atopic dermatitis flare, mild.',
         plan: 'Hydrocortisone 1% cream BID x 7 days. Moisturizer daily. Avoid triggers.',
       },
-    ],
-    appointments: [
+    ] : [],
+    appointments: isDemo ? [
       {
         id: 'apt1',
         doctorId: 'd1',
@@ -195,8 +197,8 @@ function defaultPortalData(profile?: Partial<PatientProfile>): PortalData {
         time: '10:30',
         status: 'scheduled',
       },
-    ],
-    bills: [
+    ] : [],
+    bills: isDemo ? [
       {
         id: 'bill1',
         date: '2026-01-15',
@@ -223,26 +225,33 @@ function defaultPortalData(profile?: Partial<PatientProfile>): PortalData {
         status: 'paid',
         deliveredVia: ['email'],
       },
-    ],
-    insurance: {
+    ] : [],
+    insurance: isDemo ? {
       provider: 'BlueCross Health Plus',
       policyNumber: 'BCH-8847291-X',
       coveragePercent: 80,
       maxCoverage: 50000,
       expiryDate: '2026-12-31',
       status: 'active',
+    } : {
+      provider: 'Not Provided',
+      policyNumber: 'N/A',
+      coveragePercent: 0,
+      maxCoverage: 0,
+      expiryDate: 'N/A',
+      status: 'expired',
     },
-    claims: [
+    claims: isDemo ? [
       { id: 'clm1', date: '2026-01-16', amount: 182.16, description: 'General consultation — Jan 15', status: 'approved' },
       { id: 'clm2', date: '2025-11-21', amount: 242, description: 'Cardiology check-up — Nov 20', status: 'approved' },
       { id: 'clm3', date: '2026-02-01', amount: 120, description: 'Upcoming dermatology visit', status: 'submitted' },
-    ],
-    notifications: [
+    ] : [],
+    notifications: isDemo ? [
       { id: 'n1', type: 'appointment', title: 'Appointment Reminder', message: 'Your appointment with Dr. Sarah Mitchell is on Feb 5 at 10:30 AM, Room 204.', date: '2026-02-04T08:00:00', read: false, channels: ['in_app', 'email', 'sms'] },
       { id: 'n2', type: 'bill', title: 'Bill Generated', message: 'Your bill of $227.70 for the Jan 15 consultation has been generated.', date: '2026-01-15T14:30:00', read: true, channels: ['in_app', 'email'] },
       { id: 'n3', type: 'insurance', title: 'Claim Approved', message: 'Insurance claim CLM-884729 for $182.16 has been approved.', date: '2026-01-17T09:00:00', read: true, channels: ['in_app', 'email', 'whatsapp'] },
       { id: 'n4', type: 'prescription', title: 'Prescription Ready', message: 'Your Ibuprofen prescription is ready for pickup at the hospital pharmacy.', date: '2026-01-15T16:00:00', read: false, channels: ['in_app', 'sms'] },
-    ],
+    ] : [],
   };
 }
 

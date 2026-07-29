@@ -8,10 +8,11 @@ import {
 } from 'lucide-react';
 import { logout, getStoredUser } from '@/lib/auth';
 import { getInitials } from '@/lib/utils';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { getUnreadDoctorNotificationCount } from '@/lib/doctorAppointments';
 
 const NAV_LINKS = [
   { href: '/',             icon: LayoutDashboard, label: 'Dashboard' },
@@ -26,6 +27,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
+  const [unreadNotifs, setUnreadNotifs] = useState(0);
 
   useEffect(() => { 
     const loadUser = () => {
@@ -45,7 +47,16 @@ export default function Navbar() {
     
     loadUser();
     window.addEventListener('profileUpdated', loadUser);
-    return () => window.removeEventListener('profileUpdated', loadUser);
+
+    // Live notification badge
+    const updateBadge = () => setUnreadNotifs(getUnreadDoctorNotificationCount());
+    updateBadge();
+    window.addEventListener('doctorNotificationsUpdated', updateBadge);
+
+    return () => {
+      window.removeEventListener('profileUpdated', loadUser);
+      window.removeEventListener('doctorNotificationsUpdated', updateBadge);
+    };
   }, []);
 
   const handleLogout = () => { logout(); router.push('/login'); };
@@ -96,10 +107,16 @@ export default function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center justify-end gap-3">
-          {/* Notification bell */}
-          <Button variant="ghost" size="icon" className="relative hidden md:flex text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-full">
+          {/* Notification bell — links to appointments page */}
+          <Button variant="ghost" size="icon" className="relative hidden md:flex text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-full" onClick={() => router.push('/appointments')}>
             <Bell size={18} />
-            <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-[#DC2626] border-2 border-white" />
+            {unreadNotifs > 0 ? (
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#DC2626] border-2 border-white text-white text-[9px] font-bold flex items-center justify-center">
+                {unreadNotifs > 9 ? '9+' : unreadNotifs}
+              </span>
+            ) : (
+              <span className="absolute top-2 right-2.5 w-2 h-2 rounded-full bg-[#DC2626] border-2 border-white" />
+            )}
           </Button>
 
           {/* User menu */}
