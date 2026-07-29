@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   HeartPulse, LayoutDashboard, FileText, Calendar, CreditCard,
-  Shield, Bell, LogOut,
+  Shield, Bell, LogOut, Info
 } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import { getPortalData, patientLogout } from '@/lib/patientPortal';
@@ -80,6 +80,16 @@ export default function PatientNavbar() {
               </Avatar>
               <span className="text-sm font-medium text-[#0F172A] max-w-[120px] truncate">{name}</span>
             </div>
+            
+            <Link
+              href="/about"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-[#64748B] hover:text-[#0F172A] hover:bg-slate-50 transition-colors"
+              title="About Us"
+            >
+              <Info size={16} />
+              <span className="hidden sm:inline">About</span>
+            </Link>
+
             <button
               onClick={patientLogout}
               className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm text-[#64748B] hover:text-red-600 hover:bg-red-50 transition-colors"

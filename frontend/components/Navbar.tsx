@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Activity, LayoutDashboard, Users, FileText, Calendar,
-  LineChart, Settings, LogOut, Bell, ChevronDown, Search, HeartPulse
+  LineChart, Settings, LogOut, Bell, ChevronDown, Search, HeartPulse, Info
 } from 'lucide-react';
 import { logout, getStoredUser } from '@/lib/auth';
 import { getInitials } from '@/lib/utils';
@@ -146,6 +146,10 @@ export default function Navbar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator className="bg-slate-100" />
+                <DropdownMenuItem className="cursor-pointer rounded-lg hover:bg-slate-50" onClick={() => router.push('/about')}>
+                  <Info className="mr-2 h-4 w-4 text-slate-500" />
+                  <span>About Us</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer rounded-lg hover:bg-slate-50" onClick={() => router.push('/settings')}>
                   <Settings className="mr-2 h-4 w-4 text-slate-500" />
                   <span>Settings</span>
