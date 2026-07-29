@@ -52,11 +52,55 @@ export default function AboutPage() {
       </header>
 
       <main className="flex-grow py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        <div className="text-center mb-16 space-y-4">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+        
+        {/* About Us Section */}
+        <div className="mb-24">
+          <div className="text-center mb-12 space-y-4">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900">
+              About Us
+            </h1>
+            <p className="text-lg md:text-xl text-slate-600 max-w-4xl mx-auto leading-relaxed">
+              SentinelScribe is a clinical intelligence platform with AI capabilities designed to streamline healthcare processes. SentinelScribe lets medical personnel spend more time providing high-quality patient care by integrating intelligent documentation, patient history retrieval, and clinical insights into a single, cohesive solution.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 max-w-6xl mx-auto">
+            <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-200 h-full">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">What is SentinelScribe?</h2>
+              <p className="text-slate-600 mb-6 leading-relaxed">
+                SentinelScribe is designed to support both healthcare professionals and patients through an intelligent, secure, and user-friendly platform.
+              </p>
+              
+              <h3 className="text-lg font-semibold text-[#0F4C81] mb-4">Core Features</h3>
+              <ul className="space-y-3 text-slate-600">
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>AI-powered SOAP note generation</li>
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>Patient medical history management</li>
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>Clinical decision support</li>
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>Appointment scheduling</li>
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>Insurance & billing integration</li>
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>Secure medical record management</li>
+                <li className="flex items-center gap-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></div>Doctor & Patient portals</li>
+              </ul>
+            </div>
+            
+            <div className="bg-white rounded-3xl p-8 md:p-10 shadow-sm border border-slate-200 h-full">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">Why SentinelScribe Was Constructed</h2>
+              <p className="text-slate-600 mb-5 leading-relaxed">
+                Healthcare workers frequently have more administrative duties to complete, which cuts into their time for providing direct patient care. Inefficiencies and physician burnout can result from laborious workflows, disjointed patient records, and documentation.
+              </p>
+              <p className="text-slate-600 leading-relaxed">
+                In order to overcome these difficulties, SentinelScribe was developed, which uses artificial intelligence to consolidate patient data, automate documentation, and assist with clinical decision-making. Our objective is to develop technology that complements, not replaces, the knowledge of medical experts.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Team Section */}
+        <div className="text-center mb-16 space-y-4 pt-12 border-t border-slate-200 max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
             Meet the Core Team
-          </h1>
-          <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto">
+          </h2>
+          <p className="text-lg md:text-xl text-slate-600">
             The minds behind SentinelScribe. We are passionate about bridging healthcare and artificial intelligence.
           </p>
         </div>
@@ -136,6 +180,14 @@ export default function AboutPage() {
               "For his mentorship, guidance, and continuous support throughout the development of SentinelScribe."
             </p>
           </div>
+        </div>
+
+        {/* Our Goals */}
+        <div className="mt-16 bg-[#0F4C81] rounded-3xl p-8 md:p-12 shadow-md text-center max-w-4xl mx-auto relative overflow-hidden">
+          <h2 className="text-3xl font-bold text-white mb-6">Our Goals</h2>
+          <p className="text-lg md:text-xl text-blue-50 max-w-3xl mx-auto leading-relaxed">
+            To provide healthcare workers with intelligent tools that use safe and responsible AI to improve patient outcomes, streamline clinical workflows, and improve decision-making.
+          </p>
         </div>
       </main>
       
