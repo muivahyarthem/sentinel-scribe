@@ -65,7 +65,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 mb-24">
           {team.map((member, idx) => (
             <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-lg transition-all duration-300 flex flex-col items-center text-center group hover:-translate-y-1">
-              <div className="relative w-full h-56 mb-6 bg-white flex items-center justify-center p-2 rounded-xl border border-slate-100 group-hover:border-blue-100 transition-colors shadow-sm">
+              <div className="relative w-full h-56 mb-6 flex items-center justify-center">
                 <img 
                   src={member.image} 
                   alt={member.name} 
@@ -112,7 +112,7 @@ export default function AboutPage() {
             <p className="text-lg text-slate-500 font-medium">Special thanks to</p>
             
             <div className="flex justify-center mt-6 mb-6">
-              <div className="relative w-48 h-56 bg-white flex items-center justify-center p-2 rounded-xl border border-slate-100 shadow-sm">
+              <div className="relative w-48 h-56 flex items-center justify-center">
                 <img 
                   src="/team/Dalvin.jpg" 
                   alt="Dr. Dalvin Vinoth Kumar A" 
