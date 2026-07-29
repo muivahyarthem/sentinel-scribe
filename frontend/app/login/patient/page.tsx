@@ -28,10 +28,12 @@ export default function PatientLoginPage() {
         id: user.id,
       });
       router.push('/portal');
-    } catch {
-      // For hackathon/demo purposes, if backend fails, fallback to demo login
-      demoPatientLogin();
-      router.push('/portal');
+    } catch (err: any) {
+      if (err.response?.status === 401 || err.response?.status === 404) {
+        setError('User is not available or invalid credentials.');
+      } else {
+        setError('An error occurred during login.');
+      }
     } finally {
       setLoading(false);
     }
