@@ -95,7 +95,7 @@ The system operates on a linear pipeline orchestrated by seven specialized AI Ag
 
 | Service | Default URL | Description |
 |---|---|---|
-| Frontend Application | http://localhost:3000 | The main user interface for healthcare professionals. |
+| Frontend Application | https://sentinel-scribe.vercel.app/ | The main user interface for healthcare professionals. |
 | Backend API | http://localhost:8000 | The core backend service. |
 | API Documentation (Swagger) | http://localhost:8000/docs | Interactive API documentation. |
 | Qdrant Dashboard | http://localhost:6333/dashboard | Visual interface for managing the Vector DB. |
