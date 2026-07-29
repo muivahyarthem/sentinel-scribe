@@ -105,3 +105,8 @@ export function markAllDoctorNotificationsRead() {
 export function getUnreadDoctorNotificationCount(): number {
   return getDoctorNotifications().filter(n => !n.read).length;
 }
+
+export function clearAllDoctorNotifications() {
+  saveDoctorNotifications([]);
+}
+

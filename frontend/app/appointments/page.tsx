@@ -9,6 +9,7 @@ import {
 import {
   getDoctorAppointments, getDoctorNotifications,
   markDoctorNotificationRead, markAllDoctorNotificationsRead,
+  clearAllDoctorNotifications,
   DoctorAppointmentEntry, DoctorNotification,
 } from '@/lib/doctorAppointments';
 import { Badge } from '@/components/ui/badge';
@@ -60,8 +61,14 @@ export default function DoctorAppointmentsPage() {
     ? appointments
     : appointments.filter(a => a.status === filter);
 
-  const upcoming  = filtered.filter(a => a.status === 'scheduled' || a.status === 'rescheduled');
-  const others    = filtered.filter(a => a.status !== 'scheduled' && a.status !== 'rescheduled');
+  const sortByDateAndTime = (a: DoctorAppointmentEntry, b: DoctorAppointmentEntry) => {
+    const timeA = new Date(`${a.date}T${a.time}`).getTime();
+    const timeB = new Date(`${b.date}T${b.time}`).getTime();
+    return timeA - timeB;
+  };
+
+  const upcoming  = filtered.filter(a => a.status === 'scheduled' || a.status === 'rescheduled').sort(sortByDateAndTime);
+  const others    = filtered.filter(a => a.status !== 'scheduled' && a.status !== 'rescheduled').sort((a, b) => sortByDateAndTime(b, a));
 
   const [popupNotif, setPopupNotif] = useState<{ title: string; message: string; type: string } | null>(null);
   const seenNotifIds = useRef<Set<string>>(new Set());
@@ -84,6 +91,11 @@ export default function DoctorAppointmentsPage() {
 
   const handleMarkAllRead = () => {
     markAllDoctorNotificationsRead();
+    setNotifications(getDoctorNotifications());
+  };
+
+  const handleClearAllNotifications = () => {
+    clearAllDoctorNotifications();
     setNotifications(getDoctorNotifications());
   };
 
@@ -166,14 +178,24 @@ export default function DoctorAppointmentsPage() {
                   </span>
                 )}
               </div>
-              {unreadCount > 0 && (
-                <button
-                  onClick={handleMarkAllRead}
-                  className="text-xs font-medium text-[#2563EB] hover:underline"
-                >
-                  Mark all read
-                </button>
-              )}
+              <div className="flex items-center gap-4">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllRead}
+                    className="text-xs font-medium text-[#2563EB] hover:underline"
+                  >
+                    Mark all read
+                  </button>
+                )}
+                {notifications.length > 0 && (
+                  <button
+                    onClick={handleClearAllNotifications}
+                    className="text-xs font-medium text-red-600 hover:underline"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
             </div>
 
             {notifications.length === 0 ? (
