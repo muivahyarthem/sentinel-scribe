@@ -158,8 +158,21 @@ export default function AboutPage() {
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-1">{member.name}</h3>
                 <p className="text-sm font-bold text-[#0F4C81] mb-2">{member.role}</p>
-                <div className="flex gap-2 text-slate-400 mt-2">
-                  <a href="#" className="hover:text-[#0077b5]"><div className="w-6 h-6 rounded bg-slate-100 flex items-center justify-center"><Mail size={12} /></div></a>
+                <div className="flex gap-3 text-slate-400 mt-3">
+                  <a href="#" className="hover:text-[#0077b5]" title="LinkedIn">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-[#0077b5] hover:text-white transition-colors shadow-sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                        <rect x="2" y="9" width="4" height="12"></rect>
+                        <circle cx="4" cy="4" r="2"></circle>
+                      </svg>
+                    </div>
+                  </a>
+                  <a href="#" className="hover:text-blue-500" title="Email">
+                    <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-100 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-colors shadow-sm">
+                      <Mail size={14} />
+                    </div>
+                  </a>
                 </div>
               </div>
             ))}
