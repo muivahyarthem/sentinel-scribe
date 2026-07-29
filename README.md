@@ -98,7 +98,7 @@ The system operates on a linear pipeline orchestrated by seven specialized AI Ag
 | Frontend Application | https://sentinel-scribe.vercel.app/ | The main user interface for healthcare professionals. |
 | Backend API | https://sentinel-scribe.onrender.com | The core backend service. |
 | API Documentation (Swagger) | https://sentinel-scribe.onrender.com/docs | Interactive API documentation. |
-| Qdrant Dashboard | http://localhost:6333/dashboard | Visual interface for managing the Vector DB. |
+| Qdrant Dashboard | https://76d39b28-64ec-4b34-a368-9faa11ad18b7.eu-central-1-0.aws.cloud.qdrant.io | Visual interface for managing the Vector DB. |
 
 ---
 
