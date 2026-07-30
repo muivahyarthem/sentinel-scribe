@@ -20,10 +20,8 @@ async def copilot_chat(
     db: AsyncSession = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
-    # 1. Attempt to resolve patient from message if patient_id is not provided
     resolved_patient = None
-    asked_about_patient = any(word in body.message.lower() for word in ["patient", "history", "record", "mrn", "who"])
-    
+
     if not body.patient_id:
         patients_res = await db.execute(select(Patient).where(Patient.user_id == _.id))
         all_patients = patients_res.scalars().all()
@@ -82,6 +80,12 @@ async def copilot_chat(
             "date": "Demographics", 
             "text": f"Name: {resolved_patient.name}, MRN: {resolved_patient.mrn}, DOB: {resolved_patient.dob}, Gender: {resolved_patient.gender}, Blood: {resolved_patient.blood_type}"
         })
+
+    # Only ask for a patient in the workspace — insights is for general clinical knowledge
+    is_workspace = (body.context or "workspace") == "workspace"
+    asked_about_patient = is_workspace and any(
+        word in body.message.lower() for word in ["his patient", "her patient", "this patient", "my patient", "the patient", "mrn", "who is"]
+    )
 
     answer = copilot_agent.run(
         question=body.message,

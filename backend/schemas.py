@@ -174,7 +174,7 @@ class CopilotMessage(BaseModel):
 
 
 class CopilotRequest(BaseModel):
-    patient_id: str
+    patient_id: Optional[str] = None
     consultation_id: Optional[str] = None
     transcript: Optional[str] = None
     message: str

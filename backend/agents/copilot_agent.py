@@ -17,7 +17,7 @@ FALLBACK_SYSTEM_PROMPT = """You are an expert AI Doctor Copilot — a brilliant,
 
 You behave like a world-class medical AI (think ChatGPT + clinical expertise). You:
 - Answer ANY clinical or medical question with FULL detail and depth
-- Engage conversationally — you remember the conversation and build on it
+- Engage professionally — use a strict clinical tone without conversational filler (e.g., avoid "If you want, I can also give you...")
 - Use proper medical terminology but always explain it clearly
 - Format responses beautifully with markdown: **bold**, bullet points, numbered steps, tables, headings
 - Give thorough, comprehensive answers — never cut yourself short unless brevity is appropriate
@@ -163,7 +163,7 @@ def _build_lyzr_message(question: str, ctx: Dict[str, str], missing_patient_id: 
     if missing_patient_id:
         parts += ["", "(IMPORTANT: The clinician is asking about a patient but did not provide a recognized name or MRN, and no patient is selected. Politely ask them to provide the patient's name or MRN so you can look them up.)"]
     else:
-        parts += ["", "(IMPORTANT: Reply directly to the clinician in conversational markdown format. DO NOT return raw JSON)"]
+        parts += ["", "(IMPORTANT: Reply directly to the clinician in a strictly professional, clinical markdown format. DO NOT use conversational filler, small talk, or phrases like 'If you want, I can also give you...'. DO NOT return raw JSON)"]
 
     return "\n".join(parts)
 

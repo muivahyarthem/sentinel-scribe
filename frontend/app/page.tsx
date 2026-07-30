@@ -191,7 +191,10 @@ export default function DashboardPage() {
                 )}
               </div>
               <div className="px-6 py-4 bg-[#F8FAFC] border-t border-[#E2E8F0]">
-                <button className="text-sm font-medium text-[#2563EB] hover:text-[#1d4ed8] w-full text-left">
+                <button 
+                  onClick={() => router.push('/insights')}
+                  className="text-sm font-medium text-[#2563EB] hover:text-[#1d4ed8] w-full text-left"
+                >
                   View all insights →
                 </button>
               </div>
