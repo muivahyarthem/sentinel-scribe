@@ -105,5 +105,3 @@ The system operates on a linear pipeline orchestrated by seven specialized AI Ag
 ### Graceful Fallback Mechanism
 
 The system is designed to maintain high availability. If the required Gemini API key is missing, invalid, or experiencing downtime, all AI agents gracefully fall back to deterministic, rule-based responses. This ensures that the user interface and core pipeline can always be operated and tested without interruption.
-
-
