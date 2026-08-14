@@ -31,7 +31,11 @@ It processes raw patient-doctor conversation transcripts to identify emergencies
 
 #### Doctor
 
-https://github.com/user-attachments/assets/ef5c1f97-644c-433f-a6ba-8897ea587204
+
+
+https://github.com/user-attachments/assets/af6ee2dc-95c4-4f39-be38-145c732431c6
+
+
 
 ---
 
