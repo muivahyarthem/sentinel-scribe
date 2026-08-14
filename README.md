@@ -33,6 +33,10 @@ It processes raw patient-doctor conversation transcripts to identify emergencies
 
 https://github.com/user-attachments/assets/0368c707-8fa3-4612-b0b3-4693ec514249
 
+#### Patient
+
+https://github.com/user-attachments/assets/0692475c-313f-4fa9-a466-e87d4b435326
+
 ---
 
 ### Target Audience
