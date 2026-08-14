@@ -1,3 +1,5 @@
+
+
 # Sentinel Scribe: AI-Augmented Clinical Triage, Documentation, and Doctor Copilot System
 
 Welcome to Sentinel Scribe, an intelligent, multi-agent platform designed to modernize the clinical workflow. Whether you are a healthcare professional seeking to reduce documentation overhead, or an engineer exploring modern AI architectures, this documentation provides a comprehensive overview of the project.
@@ -29,8 +31,7 @@ It processes raw patient-doctor conversation transcripts to identify emergencies
 
 #### Doctor
 
-
-
+https://github.com/user-attachments/assets/ef5c1f97-644c-433f-a6ba-8897ea587204
 
 ---
 
