@@ -6,6 +6,7 @@ Welcome to Sentinel Scribe, an intelligent, multi-agent platform designed to mod
 
 ### Table of Contents
 - [Project Overview](#project-overview)
+- [Demo Video](#demo-video)
 - [Target Audience](#target-audience)
 - [System Benefits and Improvements](#system-benefits-and-improvements)
 - [System Workflow](#system-workflow)
@@ -21,6 +22,13 @@ Welcome to Sentinel Scribe, an intelligent, multi-agent platform designed to mod
 Sentinel Scribe is a comprehensive AI-powered application built to assist medical professionals by automating clinical triage, generating SOAP (Subjective, Objective, Assessment, and Plan) documentation, and acting as an interactive AI copilot. 
 
 It processes raw patient-doctor conversation transcripts to identify emergencies, extract symptoms, determine triage priority, and generate professional medical notes. This is powered by an advanced Multi-Agent AI system using Google ADK and Gemini models.
+
+---
+
+### Demo Video
+
+#### Doctor
+<video src="D:\Christ\Proj\hackathon\vidoes\doctor.mp4" width="320" height="240" controls></video>
 
 ---
 
