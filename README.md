@@ -28,7 +28,7 @@ It processes raw patient-doctor conversation transcripts to identify emergencies
 ### Demo Video
 
 #### Doctor
-<video src="D:\Christ\Proj\hackathon\vidoes\doctor.mp4" width="320" height="240" controls></video>
+<video src="D:/Christ/Proj/hackathon/vidoes/doctor.mp4" width="320" height="240" controls></video>
 
 ---
 
